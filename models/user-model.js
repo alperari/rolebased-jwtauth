@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
 const { isEmail } = require('validator');
 const Schema = mongoose.Schema;
+const bcrypt = require('bcrypt');
 
 const userSchema = new Schema({
   tax_id: {
     type: String,
-    required: true,
     default: uuidv4(),
   },
   name: {
@@ -32,6 +32,11 @@ const userSchema = new Schema({
   address: {
     type: String,
     required: true,
+  },
+  role: {
+    type: String,
+    required: true,
+    enum: ['admin', 'salesManager', 'productManager', 'customer'],
   },
 });
 
