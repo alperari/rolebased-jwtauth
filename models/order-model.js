@@ -14,8 +14,8 @@ const orderSchema = new Schema({
   },
   status: {
     type: String,
-    required: true,
     enum: ['processing', 'in-transit', 'delivered'],
+    default: 'processing',
   },
   date: {
     type: Date,

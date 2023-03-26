@@ -89,11 +89,11 @@ router.get('/rejected/:productID', async (req, res) => {
 // Create comment
 // TODO: authenticated users can create comments
 router.post('/', async (req, res) => {
-  const { userID, productID, content } = req.body;
+  const { userID, productID, description } = req.body;
   const newComment = await Comment.create({
     userID,
     productID,
-    content,
+    description,
   });
   res.status(200).json({ newComment });
   try {

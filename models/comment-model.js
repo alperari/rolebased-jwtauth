@@ -13,8 +13,8 @@ const commentSchema = new Schema({
   },
   status: {
     type: String,
-    required: true,
     enum: ['approved', 'pending', 'rejected'],
+    default: 'pending',
   },
   description: {
     type: String,
