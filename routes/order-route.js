@@ -28,6 +28,11 @@ router.post('/', requireAuth, async (req, res) => {
   const { user } = req;
   const { products, creditCard, address } = req.body;
 
+  // Validate inputs are valid
+  if (!products || !creditCard || !address) {
+    return res.status(400).json({ error: 'Invalid inputs' });
+  }
+
   // Validate productIDs are valid
   const productsInDB = await Product.find({
     _id: { $in: products.map((element) => element._id) },
@@ -37,7 +42,7 @@ router.post('/', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Invalid product IDs' });
   }
 
-  // Validate all products will have a quantity and price
+  // Validate if all products has a quantity and price
   const isValid = products.reduce((accumulator, currentValue) => {
     accumulator =
       currentValue.price != null &&
