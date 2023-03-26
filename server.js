@@ -52,7 +52,7 @@ mongoose
     const userRouter = require('./routes/user-route');
     const productRouter = require('./routes/product-route');
     // const categoryRouter = require('./routes/category-route');
-    // const orderRouter = require('./routes/order-route');
+    const orderRouter = require('./routes/order-route');
     // const wishlistRouter = require('./routes/wishlist-route');
     // const cartRouter = require('./routes/cart-route');
     // const ratingRouter = require('./routes/rating-route');
@@ -63,7 +63,7 @@ mongoose
     app.use('/user', userRouter);
     app.use('/product', productRouter);
     // app.use('/category', categoryRouter);
-    // app.use('/order', orderRouter);
+    app.use('/order', orderRouter);
     // app.use('/wishlist', wishlistRouter);
     // app.use('/cart', cartRouter);
     // app.use('/rating', ratingRouter);
