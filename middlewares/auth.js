@@ -1,19 +1,23 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/user-model');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 requireAuth = (req, res, next) => {
-  const token = req.cookies.token;
+  // TODO: USE COOKIES INSTEAD OF HEADERS
+  //   const token = req.cookies.token;
+  const token =
+    req.headers.authorization &&
+    req.headers.authorization.split(' ')[0] == 'Bearer' &&
+    req.headers.authorization.split(' ')[1];
 
   if (!token) {
-    res.redirect('/login');
+    if (err) return res.sendStatus(403);
   }
 
-  jwt.verify(token, JWT_SECRET, function (err, decodedToken) {
-    if (err) {
-      res.redirect('/login');
-    }
-    //decodedToken: payload of token
+  jwt.verify(token, JWT_SECRET, function (err, user) {
+    if (err) return res.sendStatus(403);
+
+    req.user = user;
     next();
   });
 };

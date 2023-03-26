@@ -7,7 +7,10 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 const app = express();
-const port = 3000;
+
+const PORT = process.env['PORT'] | 3000;
+const SESSION_KEY = process.env.SESSION_KEY;
+const MONGO_URI = process.env.MONGO_URI;
 
 app.use(
   bodyParser.urlencoded({
@@ -20,10 +23,6 @@ app.use(
     limit: '20mb',
   })
 );
-
-const PORT = process.env['PORT'] | 3000;
-const JWT_SECRET = process.env.JWT_SECRET;
-const MONGO_URI = process.env.MONGO_URI;
 
 mongoose
   .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -39,8 +38,10 @@ mongoose
 
     // Routes Here
     const authRouter = require('./routes/auth-route');
+    const userRouter = require('./routes/user-route');
 
     app.use('/auth', authRouter);
+    app.use('/user', userRouter);
   })
   .catch((error) => {
     console.log(error);

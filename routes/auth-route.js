@@ -1,21 +1,18 @@
 const { Router } = require('express');
-const router = Router();
 const User = require('../models/user-model');
 const jwt = require('jsonwebtoken');
 
-const generateToken = (id) => {
+const router = Router();
+
+const generateToken = (user) => {
   const JWT_SECRET = process.env.JWT_SECRET;
 
   const header = {
     algorithm: 'HS256',
-    expiresIn: 1 * 24 * 60 * 60,
+    expiresIn: '1m',
   };
 
-  const payload = {
-    id: id,
-  };
-
-  return jwt.sign(payload, JWT_SECRET, header);
+  return jwt.sign(user.toJSON(), JWT_SECRET, header);
 };
 
 router.post('/register', async (req, res) => {
@@ -30,8 +27,7 @@ router.post('/register', async (req, res) => {
       role,
     });
 
-    // Create jwt token on signup and redirect to home view
-    const token = generateToken(user.id);
+    const token = generateToken(user);
 
     res.cookie('token', token, {
       // httpOnly: true,  //if true: frontend cannot read token from cookies
@@ -41,31 +37,32 @@ router.post('/register', async (req, res) => {
     res.status(201).json({ user });
   } catch (error) {
     console.error(error);
-    res.status(400).send({ error: error });
+    res.status(400).json({ error });
   }
 });
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  if (!email || !password) res.status(400).send('Invalid inputs');
+  if (!email || !password) return res.status(400).send('Invalid inputs');
 
   try {
     // Use mongoose static login method
     const user = await User.login(email, password);
 
-    const token = generateToken(user.id);
+    const token = generateToken(user);
 
     res.cookie('token', token, {
       // httpOnly: true,  //if true: frontend cannot read token from cookies
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    res.status(201).json({ user });
+    res.status(201).json({ payload: user, token: token });
   } catch (error) {
+    console.log(error);
     // If .login static method fails to match password, it will throw an error.
     // Otherwise, it will return user
-    res.status(400).send({ error: error });
+    res.status(400).json({ error });
   }
 });
 
