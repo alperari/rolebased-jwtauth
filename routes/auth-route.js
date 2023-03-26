@@ -15,9 +15,12 @@ const generateToken = (user) => {
   return jwt.sign(user.toJSON(), JWT_SECRET, header);
 };
 
+// Endpoints--------------------------------------------------------------
+
 router.post('/register', async (req, res) => {
   const { name, username, email, password, address, role } = req.body;
   try {
+    // Create user
     const user = await User.create({
       name,
       username,
@@ -25,6 +28,12 @@ router.post('/register', async (req, res) => {
       password,
       address,
       role,
+    });
+
+    // Create wishlist for user
+    const wishlist = await Wishlist.create({
+      userID: user._id,
+      productIDs: [],
     });
 
     const token = generateToken(user);
