@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const cloudinary = require('cloudinary').v2;
 
 // Mongoose models
 const Product = require('../models/product-model');
@@ -12,40 +13,18 @@ const router = Router();
 
 // Endpoints--------------------------------------------------------------
 
-//Create product
-router.post('/', async (req, res) => {
-  const {
-    name,
-    price,
-    description,
-    category,
-    imageData,
-    quantity,
-    model,
-    distributor,
-    warrantyStatus,
-  } = req.body;
+// Get a single product
+router.get('/:id', async (req, res) => {
   try {
-    //Create product but use Product model in this repository
-
-    const product = await Product.create({
-      name,
-      price,
-      description,
-      category,
-      imageURL,
-      quantity,
-      model,
-      distributor,
-      warrantyStatus,
-    });
+    const product = await Product.findById(req.params.id);
+    res.status(200).json({ product });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });
   }
 });
 
-//Get all products
+// Get all products
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find();
@@ -56,10 +35,56 @@ router.get('/', async (req, res) => {
   }
 });
 
-//Get a single product
-router.get('/:id', async (req, res) => {
+// Create product
+router.post('/', async (req, res) => {
+  const {
+    name,
+    description,
+    category,
+    image,
+    quantity,
+    model,
+    distributor,
+    warrantyStatus,
+  } = req.body;
+
   try {
-    const product = await Product.findById(req.params.id);
+    // Upload image to cloudinary
+    const result = await cloudinary.uploader.upload(image, {
+      upload_preset: 'e-commerce',
+      resource_type: 'image',
+    });
+
+    const imageURL = result.secure_url;
+
+    // Create product
+    const product = await Product.create({
+      name,
+      price: -1, // Product price will be set by sales manager later
+      description,
+      category,
+      imageURL,
+      quantity,
+      model,
+      distributor,
+      warrantyStatus,
+    });
+
+    res.status(201).json({ product });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
+
+// Update product price
+// TODO: Only sales manager can update product price
+router.patch('/:id', async (req, res) => {
+  const { price } = req.body;
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, {
+      price,
+    });
     res.status(200).json({ product });
   } catch (error) {
     console.error(error);
@@ -72,43 +97,6 @@ router.get('/:id/ratings', async (req, res) => {
   try {
     const ratings = await Rating.find({ productID: req.params.id });
     res.status(200).json({ ratings });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
-  }
-});
-
-//Get all products in a cart
-router.get('/:id/cart', async (req, res) => {
-  try {
-    const cart = await Cart.find({ userID: req.params.id });
-    res.status(200).json({ cart });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
-  }
-});
-
-//Add a product to a cart
-router.post('/:id/cart', async (req, res) => {
-  const { userID, productID } = req.body;
-  try {
-    const cart = await Cart.create({
-      userID,
-      productID,
-    });
-    res.status(201).json({ cart });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
-  }
-});
-
-//Delete a product from a cart
-router.delete('/:id/cart', async (req, res) => {
-  try {
-    const cart = await Cart.findByIdAndDelete(req.params.id);
-    res.status(200).json({ cart });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });
