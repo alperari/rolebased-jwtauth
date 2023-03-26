@@ -2,9 +2,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const PDFDocument = require('pdfkit');
-const request = require('request');
-const blobStream = require('blob-stream');
-const buffer = require('buffer');
+const axios = require('axios');
 
 const { transporter } = require('../utils/nodemailer');
 
@@ -74,7 +72,22 @@ orderSchema.statics.sendReceipt = async function (user) {
       }
     });
   });
+
+  // PDF content comes here ---------------------
   doc.text('Hello, World!');
+  doc.fontSize(14).text('Title', { align: 'center' }).moveDown(0.5);
+  doc.fontSize(10).text('Description', { align: 'center' }).moveDown(0.5);
+
+  // Image
+  const image = await axios.get(
+    'https://www.google.com/images/srpr/logo11w.png',
+    {
+      responseType: 'arraybuffer',
+    }
+  );
+
+  doc.image(image.data, { align: 'center', height: 100 }).moveDown(0.5);
+
   doc.end();
 };
 
