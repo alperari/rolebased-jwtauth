@@ -14,6 +14,7 @@ const router = Router();
 // Endpoints--------------------------------------------------------------
 
 // Get a single product
+// Everyone
 router.get('/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -25,6 +26,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Get all products
+// Everyone
 router.get('/', async (req, res) => {
   try {
     const products = await Product.find();
@@ -35,7 +37,22 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get products under a category
+// Everyone
+router.get('/category/:category', async (req, res) => {
+  try {
+    const products = await Product.find({
+      category: req.params.category,
+    });
+    res.status(200).json({ products });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
+
 // Create product
+// TODO: Only product manager can create product
 router.post('/', async (req, res) => {
   const {
     name,
@@ -78,14 +95,25 @@ router.post('/', async (req, res) => {
 });
 
 // Update product price
-// TODO: Only sales manager can update product price
+// TODO: Only sales manager can update product price & discount
 router.patch('/:id', async (req, res) => {
-  const { price } = req.body;
+  const { price, discount } = req.body;
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, {
-      price,
-    });
-    res.status(200).json({ product });
+    const update = {};
+
+    if (price > 0) {
+      update.price = price;
+    }
+
+    if (discount > 0) {
+      update.discount = discount;
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      update
+    );
+    res.status(200).json({ updatedProduct });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });

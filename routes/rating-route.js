@@ -7,6 +7,7 @@ const router = express.Router();
 // Endpoints--------------------------------------------------------------
 
 // Get all ratings for a product
+// Everyone
 router.get('/all/:productID', async (req, res) => {
   const { productID } = req.params;
 

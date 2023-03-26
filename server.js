@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const path = require('path');
 const mongoose = require('mongoose');
+const cloudinary = require('cloudinary').v2;
 
 const app = express();
 
@@ -49,9 +50,25 @@ mongoose
     // Routes Here
     const authRouter = require('./routes/auth-route');
     const userRouter = require('./routes/user-route');
+    const productRouter = require('./routes/product-route');
+    // const categoryRouter = require('./routes/category-route');
+    // const orderRouter = require('./routes/order-route');
+    // const wishlistRouter = require('./routes/wishlist-route');
+    // const cartRouter = require('./routes/cart-route');
+    // const ratingRouter = require('./routes/rating-route');
+    // const commentRouter = require('./routes/comment-route');
+    const searchRouter = require('./routes/search-route');
 
     app.use('/auth', authRouter);
     app.use('/user', userRouter);
+    app.use('/product', productRouter);
+    // app.use('/category', categoryRouter);
+    // app.use('/order', orderRouter);
+    // app.use('/wishlist', wishlistRouter);
+    // app.use('/cart', cartRouter);
+    // app.use('/rating', ratingRouter);
+    // app.use('/comment', commentRouter);
+    app.use('/search', searchRouter);
   })
   .catch((error) => {
     console.log(error);
