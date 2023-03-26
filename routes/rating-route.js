@@ -46,6 +46,7 @@ router.delete('/:id', async (req, res) => {
 
   try {
     const deletedRating = await Rating.findByIdAndDelete(id);
+
     res.status(200).json({ deletedRating });
   } catch (error) {
     console.error(error);
