@@ -8,6 +8,25 @@ const router = Router();
 
 // Endpoints--------------------------------------------------------------
 
+// Gett my comments for a product
+// TODO: only authenticated users can get their comments
+router.get('/my/:productID', requireAuth, async (req, res) => {
+  const { productID } = req.params;
+  const { user } = req;
+
+  try {
+    const myComments = await Comment.find({
+      productID,
+      userID: user.id,
+    });
+
+    res.status(200).json({ myComments });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
+
 // Get all comments for a product
 // TODO: only product owners can get all comments
 router.get('/all/:productID', async (req, res) => {
@@ -138,3 +157,5 @@ router.patch('/process/:id', async (req, res) => {
     res.status(400).json({ error });
   }
 });
+
+module.exports = router;
