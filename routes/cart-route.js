@@ -59,7 +59,7 @@ router.post('/add', requireAuth, async (req, res) => {
   const { user } = req;
   const { productID, quantity } = req.body;
 
-  if (!productID || !quantity) {
+  if (!productID || !quantity || quantity <= 0) {
     console.error('Product ID and quantity are required');
     return res
       .status(400)
@@ -73,6 +73,14 @@ router.post('/add', requireAuth, async (req, res) => {
     if (!product) {
       console.error('Product does not exist');
       return res.status(400).json({ error: 'Product does not exist' });
+    }
+
+    // Check if the product has enough quantity
+    if (product.quantity < quantity) {
+      console.error('Product does not have enough quantity');
+      return res
+        .status(400)
+        .json({ error: 'Product does not have enough quantity' });
     }
 
     // Get cart
@@ -90,10 +98,75 @@ router.post('/add', requireAuth, async (req, res) => {
     // If product is not in cart, add it
     else {
       cart.products.push({ productID, quantity });
-      await cart.save();
     }
 
-    return res.status(200).json({ cart });
+    // Update my cart
+    const updatedCart = await Cart.findOneAndUpdate(
+      { userID: user._id },
+      { products: cart.products },
+      { new: true }
+    );
+
+    // // Update product quantity
+    // const reducedQuantity = product.quantity - quantity;
+    // const updatedProduct = await Product.findOneAndUpdate(
+    //   { _id: productID },
+    //   { quantity: reducedQuantity },
+    //   { new: true }
+    // );
+
+    return res.status(200).json({ updatedCart });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ error });
+  }
+});
+
+// Remove product from cart
+// Only authenticated users
+router.delete('/remove', requireAuth, async (req, res) => {
+  const { user } = req;
+  const { productID } = req.body;
+
+  if (!productID) {
+    console.error('Product ID is required');
+    return res.status(400).json({ error: 'Product ID is required' });
+  }
+
+  try {
+    // Check if product with productID exists
+    const product = await Product.findById(productID);
+
+    if (!product) {
+      console.error('Product does not exist');
+      return res.status(400).json({ error: 'Product does not exist' });
+    }
+
+    // Get cart
+    const cart = await Cart.findOne({ userID: user._id });
+
+    // Check if product is in cart
+    const productIndex = cart.products.findIndex(
+      (element) => element.productID == productID
+    );
+
+    // If product is not in cart, return error
+    if (productIndex === -1) {
+      console.error('Product is not in cart');
+      return res.status(400).json({ error: 'Product is not in cart' });
+    }
+
+    // Remove product from cart
+    cart.products.splice(productIndex, 1);
+
+    // Update my cart
+    const updatedCart = await Cart.findOneAndUpdate(
+      { userID: user._id },
+      { products: cart.products },
+      { new: true }
+    );
+
+    return res.status(200).json({ updatedCart });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error });

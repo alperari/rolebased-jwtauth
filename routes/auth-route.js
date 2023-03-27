@@ -11,7 +11,7 @@ const generateToken = (user) => {
 
   const header = {
     algorithm: 'HS256',
-    expiresIn: '15m',
+    expiresIn: '100m',
   };
 
   return jwt.sign(user.toJSON(), JWT_SECRET, header);

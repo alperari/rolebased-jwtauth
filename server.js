@@ -17,6 +17,11 @@ const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
 app.use(fileupload({ useTempFiles: true }));
 
+app.use(function (req, res, next) {
+  console.log('Request:', req.method, req.originalUrl);
+  next();
+});
+
 app.use(
   bodyParser.urlencoded({
     extended: true,
