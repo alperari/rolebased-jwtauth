@@ -8,7 +8,7 @@ const router = Router();
 // Endpoints--------------------------------------------------------------
 
 // Get my user
-router.get('/', requireAuth, async (req, res) => {
+router.get('/me', requireAuth, async (req, res) => {
   const { user } = req;
 
   return res.json({ user });
@@ -18,6 +18,11 @@ router.get('/', requireAuth, async (req, res) => {
 // Only authenticated users can get other users
 router.get('/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
+
+  if (!id) {
+    console.error('ID is required');
+    return res.status(400).json({ error: 'ID is required' });
+  }
 
   try {
     const user = User.findById(id);
@@ -34,6 +39,11 @@ router.get('/:id', requireAuth, async (req, res) => {
 router.patch('/', requireAuth, async (req, res) => {
   const { user } = req;
   const { name, email, password } = req.body;
+
+  if (!name && !email && !password) {
+    console.error('Nothing to update');
+    return res.status(400).json({ error: 'Nothing to update' });
+  }
 
   const filter = { _id: user._id };
   const update = {};
