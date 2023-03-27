@@ -16,8 +16,14 @@ const router = Router();
 // Get a single product
 // Everyone
 router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Product ID is required' });
+  }
+
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(id);
     res.status(200).json({ product });
   } catch (error) {
     console.error(error);
@@ -40,11 +46,29 @@ router.get('/', async (req, res) => {
 // Get products under a category
 // Everyone
 router.get('/category/:category', async (req, res) => {
+  const category = req.params.category;
+
+  if (!category) {
+    return res.status(400).json({ error: 'Category is required' });
+  }
+
   try {
     const products = await Product.find({
-      category: req.params.category,
+      category,
     });
     res.status(200).json({ products });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
+
+// Get all categories dynamically
+// Everyone
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Product.distinct('category');
+    res.status(200).json({ categories });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });
@@ -94,10 +118,15 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Update product price
+// Update product price & discount
 // TODO: Only sales manager can update product price & discount
 router.patch('/:id', async (req, res) => {
   const { price, discount } = req.body;
+
+  if (!price || !discount) {
+    return res.status(400).json({ error: 'Price or discount is missing' });
+  }
+
   try {
     const update = {};
 
@@ -122,8 +151,14 @@ router.patch('/:id', async (req, res) => {
 
 //Get all ratings for a product
 router.get('/:id/ratings', async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Product ID is missing' });
+  }
+
   try {
-    const ratings = await Rating.find({ productID: req.params.id });
+    const ratings = await Rating.find({ productID: id });
     res.status(200).json({ ratings });
   } catch (error) {
     console.error(error);
