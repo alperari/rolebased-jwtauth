@@ -40,7 +40,9 @@ const userSchema = new Schema({
   },
 });
 
-// Hooks
+// Hooks -----------------------------------------------------------------------
+
+// Before create
 userSchema.pre('save', async function (next) {
   console.log('saving user:', this.email);
 
@@ -50,8 +52,24 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// After create
 userSchema.post('save', function (doc, next) {
   console.log('saved user:', doc.email);
+  next();
+});
+
+// Before update
+userSchema.pre('findOneAndUpdate', async function (next) {
+  // Hash the new password if it is modified
+  const newPassword = this.getUpdate().password;
+
+  if (newPassword) {
+    const salt = await bcrypt.genSalt();
+    const newPasswordHashed = await bcrypt.hash(newPassword, salt);
+
+    this.getUpdate().password = newPasswordHashed;
+  }
+
   next();
 });
 

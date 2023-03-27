@@ -121,6 +121,7 @@ router.post('/', async (req, res) => {
 // Update product price & discount
 // TODO: Only sales manager can update product price & discount
 router.patch('/:id', async (req, res) => {
+  const { id } = req.params;
   const { price, discount } = req.body;
 
   if (!price || !discount) {
@@ -128,6 +129,7 @@ router.patch('/:id', async (req, res) => {
   }
 
   try {
+    const filter = { _id: id };
     const update = {};
 
     if (price > 0) {
@@ -138,10 +140,10 @@ router.patch('/:id', async (req, res) => {
       update.discount = discount;
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(
-      req.params.id,
-      update
-    );
+    const updatedProduct = await Product.findByIdAndUpdate(filter, update, {
+      new: true, // new:true will return updated document
+    });
+
     res.status(200).json({ updatedProduct });
   } catch (error) {
     console.error(error);
