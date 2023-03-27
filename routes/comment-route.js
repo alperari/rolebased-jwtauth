@@ -3,16 +3,23 @@
 const { Router } = require('express');
 const Comment = require('../models/comment-model');
 const { requireAuth } = require('../middlewares/auth');
+const Product = require('../models/product-model');
 
 const router = Router();
 
 // Endpoints--------------------------------------------------------------
 
 // Gett my comments for a product
-// TODO: only authenticated users can get their comments
+// Only authenticated users can get their comments
 router.get('/my/:productID', requireAuth, async (req, res) => {
-  const { productID } = req.params;
   const { user } = req;
+
+  const { productID } = req.params;
+
+  if (!productID) {
+    console.error('Product ID is required');
+    return res.status(400).json({ error: 'Product ID is required' });
+  }
 
   try {
     const myComments = await Comment.find({
@@ -32,6 +39,11 @@ router.get('/my/:productID', requireAuth, async (req, res) => {
 router.get('/all/:productID', async (req, res) => {
   const { productID } = req.params;
 
+  if (!productID) {
+    console.error('Product ID is required');
+    return res.status(400).json({ error: 'Product ID is required' });
+  }
+
   try {
     const comments = await Comment.find({ productID });
     res.status(200).json({ comments });
@@ -45,6 +57,11 @@ router.get('/all/:productID', async (req, res) => {
 // Everyone
 router.get('/approved/:productID', async (req, res) => {
   const { productID } = req.params;
+
+  if (!productID) {
+    console.error('Product ID is required');
+    return res.status(400).json({ error: 'Product ID is required' });
+  }
 
   try {
     const comments = await Comment.find({ productID, status: 'approved' });
@@ -61,6 +78,11 @@ router.get('/approved/:productID', async (req, res) => {
 router.get('/pending/:productID', async (req, res) => {
   const { productID } = req.params;
 
+  if (!productID) {
+    console.error('Product ID is required');
+    return res.status(400).json({ error: 'Product ID is required' });
+  }
+
   try {
     const comments = await Comment.find({ productID, status: 'pending' });
 
@@ -76,6 +98,11 @@ router.get('/pending/:productID', async (req, res) => {
 router.get('/rejected/:productID', async (req, res) => {
   const { productID } = req.params;
 
+  if (!productID) {
+    console.error('Product ID is required');
+    return res.status(400).json({ error: 'Product ID is required' });
+  }
+
   try {
     const comments = await Comment.find({ productID, status: 'rejected' });
 
@@ -87,11 +114,30 @@ router.get('/rejected/:productID', async (req, res) => {
 });
 
 // Create comment
-// TODO: authenticated users can create comments
-router.post('/', async (req, res) => {
-  const { userID, productID, description } = req.body;
+// Only authenticated users can create comments
+router.post('/', requireAuth, async (req, res) => {
+  const { user } = req;
+
+  const { productID, description } = req.body;
+
+  if (!productID || !description) {
+    console.error('Product ID and description are required');
+    return res
+      .status(400)
+      .json({ error: 'Product ID and description are required' });
+  }
+
+  // Check if product with productID exists
+  const products = await Product.findById(productID);
+
+  if (!products) {
+    console.error('Product does not exist');
+    return res.status(400).json({ error: 'Product does not exist' });
+  }
+
+  // Create comment
   const newComment = await Comment.create({
-    userID,
+    userID: user.id,
     productID,
     description,
   });
@@ -104,15 +150,30 @@ router.post('/', async (req, res) => {
 });
 
 // Update comment
-// TODO: authenticated users can update THEIR comments
-router.patch('/:id', async (req, res) => {
-  const { userID, description } = req.body;
+// Only authenticated users can update THEIR comments
+router.patch('/:id', requireAuth, async (req, res) => {
+  const { user } = req;
+
+  const { description } = req.body;
   const { id } = req.params;
 
+  if (!description || !id) {
+    console.error('Description and ID are required');
+    return res.status(400).json({ error: 'Description and ID are required' });
+  }
+
+  // Check if comment with id exists
+  const comment = await Comment.findById(id);
+
+  if (!comment) {
+    console.error('Comment does not exist');
+    return res.status(400).json({ error: 'Comment does not exist' });
+  }
+
   try {
-    // update comment whose id is id and userId is userID
+    // Update comment whose id is id and userId is userID
     const updatedComment = await Comment.findOneAndUpdate(
-      { _id: id, userID },
+      { _id: id, userID: user.id },
       { description },
       { new: true }
     );
@@ -125,12 +186,30 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete comment
-// TODO: authenticated users can delete THEIR comments
-router.delete('/:id', async (req, res) => {
+// Only authenticated users can delete THEIR comments
+router.delete('/:id', requireAuth, async (req, res) => {
+  const { user } = req;
   const { id } = req.params;
 
+  if (!id) {
+    console.error('ID is required');
+    return res.status(400).json({ error: 'ID is required' });
+  }
+
+  // Check if comment with id exists
+  const comment = await Comment.findById(id);
+
+  if (!comment) {
+    console.error('Comment does not exist');
+    return res.status(400).json({ error: 'Comment does not exist' });
+  }
+
   try {
-    const deletedComment = await Comment.findOneAndDelete({ _id: id, userID });
+    // Delete comment whose id is id and userId is userID
+    const deletedComment = await Comment.findOneAndDelete({
+      _id: id,
+      userID: user.id,
+    });
 
     res.status(200).json({ deletedComment });
   } catch (error) {
@@ -142,9 +221,16 @@ router.delete('/:id', async (req, res) => {
 // Approve/Reject (a.k.a. process) comment
 // TODO: only product managers can approve/reject comments
 router.patch('/process/:id', async (req, res) => {
+  const { id } = req.params;
   const { newStatus } = req.body;
 
+  if (!id || !newStatus) {
+    console.error('ID and new status are required');
+    return res.status(400).json({ error: 'ID and new status are required' });
+  }
+
   try {
+    // Update comment whose id is id and userId is userID
     const updatedComment = await Comment.findOneAndUpdate(
       { _id: id },
       { status: newStatus },
