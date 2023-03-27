@@ -58,7 +58,7 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     // Create new rating
     const newRating = await Rating.create({
-      userID: user.id,
+      userID: user._id,
       productID,
       stars,
     });
@@ -90,10 +90,10 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 
   try {
-    // Delete rating whose id is id and userID is user.id
+    // Delete rating whose id is id and userID is user._id
     const deletedRating = await Rating.findOneAndDelete({
       _id: id,
-      userID: user.id,
+      userID: user._id,
     });
 
     res.status(200).json({ deletedRating });

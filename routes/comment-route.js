@@ -24,7 +24,7 @@ router.get('/my/:productID', requireAuth, async (req, res) => {
   try {
     const myComments = await Comment.find({
       productID,
-      userID: user.id,
+      userID: user._id,
     });
 
     res.status(200).json({ myComments });
@@ -137,7 +137,7 @@ router.post('/', requireAuth, async (req, res) => {
 
   // Create comment
   const newComment = await Comment.create({
-    userID: user.id,
+    userID: user._id,
     productID,
     description,
   });
@@ -173,7 +173,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   try {
     // Update comment whose id is id and userId is userID
     const updatedComment = await Comment.findOneAndUpdate(
-      { _id: id, userID: user.id },
+      { _id: id, userID: user._id },
       { description },
       { new: true }
     );
@@ -208,7 +208,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     // Delete comment whose id is id and userId is userID
     const deletedComment = await Comment.findOneAndDelete({
       _id: id,
-      userID: user.id,
+      userID: user._id,
     });
 
     res.status(200).json({ deletedComment });

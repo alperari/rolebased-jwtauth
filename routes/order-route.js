@@ -14,7 +14,7 @@ router.get('/my', requireAuth, async (req, res) => {
   const { user } = req;
 
   try {
-    const orders = await Order.find({ userID: user.id });
+    const orders = await Order.find({ userID: user._id });
     res.status(200).json({ orders });
   } catch (error) {
     console.error(error);
@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
 
   try {
     const newOrder = await Order.create({
-      //   userID: user.id,
+      //   userID: user._id,
       userID,
       products,
       creditCard,
