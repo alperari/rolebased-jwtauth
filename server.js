@@ -1,20 +1,21 @@
 require('dotenv').config();
 
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-const path = require('path');
 const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
+const fileupload = require('express-fileupload');
 
 const app = express();
 
 const PORT = process.env['PORT'] | 3000;
-const SESSION_KEY = process.env.SESSION_KEY;
+// const SESSION_KEY = process.env.SESSION_KEY;
 const MONGO_URI = process.env.MONGO_URI;
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+
+app.use(fileupload({ useTempFiles: true }));
 
 app.use(
   bodyParser.urlencoded({
@@ -51,23 +52,21 @@ mongoose
     const authRouter = require('./routes/auth-route');
     const userRouter = require('./routes/user-route');
     const productRouter = require('./routes/product-route');
-    // const categoryRouter = require('./routes/category-route');
     const orderRouter = require('./routes/order-route');
-    // const wishlistRouter = require('./routes/wishlist-route');
-    // const cartRouter = require('./routes/cart-route');
-    // const ratingRouter = require('./routes/rating-route');
-    // const commentRouter = require('./routes/comment-route');
+    const wishlistRouter = require('./routes/wishlist-route');
+    const cartRouter = require('./routes/cart-route');
+    const ratingRouter = require('./routes/rating-route');
+    const commentRouter = require('./routes/comment-route');
     const searchRouter = require('./routes/search-route');
 
     app.use('/auth', authRouter);
     app.use('/user', userRouter);
     app.use('/product', productRouter);
-    // app.use('/category', categoryRouter);
     app.use('/order', orderRouter);
-    // app.use('/wishlist', wishlistRouter);
-    // app.use('/cart', cartRouter);
-    // app.use('/rating', ratingRouter);
-    // app.use('/comment', commentRouter);
+    app.use('/wishlist', wishlistRouter);
+    app.use('/cart', cartRouter);
+    app.use('/rating', ratingRouter);
+    app.use('/comment', commentRouter);
     app.use('/search', searchRouter);
   })
   .catch((error) => {

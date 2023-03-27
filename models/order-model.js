@@ -37,6 +37,7 @@ const orderSchema = new Schema({
   },
 });
 
+// Hooks ----------------------------------------
 orderSchema.post('save', function (doc, next) {
   console.log('Order saved: ', doc.id);
   next();

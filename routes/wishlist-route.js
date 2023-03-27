@@ -1,7 +1,9 @@
 const { Router } = require('express');
 const Wishlist = require('../models/wishlist-model');
-const { requireAuth } = require('../middlewares/auth');
 const Product = require('../models/product-model');
+
+// Middlewares
+const { requireAuth } = require('../middlewares/auth');
 
 const router = Router();
 
@@ -78,10 +80,10 @@ router.patch('/remove/:productID', requireAuth, async (req, res) => {
 
   try {
     const wishlist = await Wishlist.findOne({ userID: user._id });
-    const productIndex = wishlist.products.indexOf(productID);
+    const productIndex = wishlist.productIDs.indexOf(productID);
 
     if (productIndex !== -1) {
-      wishlist.products.splice(productIndex, 1);
+      wishlist.productIDs.splice(productIndex, 1);
     }
 
     await wishlist.save();
@@ -92,3 +94,5 @@ router.patch('/remove/:productID', requireAuth, async (req, res) => {
     return res.status(400).json({ error });
   }
 });
+
+module.exports = router;

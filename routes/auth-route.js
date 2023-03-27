@@ -1,5 +1,7 @@
 const { Router } = require('express');
 const User = require('../models/user-model');
+const Wishlist = require('../models/wishlist-model');
+const Cart = require('../models/cart-model');
 const jwt = require('jsonwebtoken');
 
 const router = Router();
@@ -36,6 +38,12 @@ router.post('/register', async (req, res) => {
       productIDs: [],
     });
 
+    // Create cart for user
+    const cart = await Cart.create({
+      userID: user._id,
+      products: [],
+    });
+
     const token = generateToken(user);
 
     res.cookie('token', token, {
@@ -43,7 +51,7 @@ router.post('/register', async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    res.status(201).json({ user });
+    res.status(201).json({ user, token });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });

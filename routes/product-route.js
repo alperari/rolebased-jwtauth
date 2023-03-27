@@ -82,18 +82,19 @@ router.post('/', async (req, res) => {
     name,
     description,
     category,
-    image,
-    quantity,
+    // image,
     model,
     distributor,
     warrantyStatus,
   } = req.body;
 
+  const image = req.files.image;
   try {
     // Upload image to cloudinary
-    const result = await cloudinary.uploader.upload(image, {
-      upload_preset: 'e-commerce',
-      resource_type: 'image',
+    const result = await cloudinary.uploader.upload(image.tempFilePath, {
+      resource_type: 'auto',
+      upload_preset: 'uzvxfwtx',
+      folder: 'products',
     });
 
     const imageURL = result.secure_url;
@@ -102,10 +103,11 @@ router.post('/', async (req, res) => {
     const product = await Product.create({
       name,
       price: -1, // Product price will be set by sales manager later
+      discount: -1, // Product discount will be set by sales manager later
       description,
       category,
       imageURL,
-      quantity,
+      quantity: 0, // Product quantity will be set by product manager later
       model,
       distributor,
       warrantyStatus,
