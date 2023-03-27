@@ -11,6 +11,12 @@ const router = express.Router();
 router.get('/products', async (req, res) => {
   const { query } = req.query;
 
+  // If empty query, return all products
+  if (!query) {
+    const products = await Product.find();
+    return res.status(200).json({ products });
+  }
+
   try {
     const products = await Product.find({
       $or: [

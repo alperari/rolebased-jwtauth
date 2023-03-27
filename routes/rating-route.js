@@ -37,7 +37,7 @@ router.get('/all/:productID', async (req, res) => {
 
 // Create rating for a product
 // Only authenticated users can create ratings
-router.post('/', requiredAuth, async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   const { user } = req;
 
   const { productID, stars } = req.body;
