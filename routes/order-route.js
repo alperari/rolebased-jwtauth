@@ -23,10 +23,9 @@ router.get('/my', requireAuth, async (req, res) => {
 });
 
 // Place order
-// TODO: Only authenticated users
-router.post('/', async (req, res) => {
-  //   const { user } = req;
-  const userID = 1;
+// Only authenticated users
+router.post('/', requireAuth, async (req, res) => {
+  const { user } = req;
   const { products, creditCard, address } = req.body;
 
   // Validate inputs are valid
@@ -34,16 +33,16 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Invalid inputs' });
   }
 
-  // Validate productIDs are valid
-  //   const productsInDB = await Product.find({
-  //     _id: { $in: products.map((element) => element._id) },
-  //   });
+  // Check if productIDs are valid
+  const productsInDB = await Product.find({
+    _id: { $in: products.map((element) => element._id) },
+  });
 
-  //   if (productsInDB.length !== products.length) {
-  //     return res.status(400).json({ error: 'Invalid product IDs' });
-  //   }
+  if (productsInDB.length !== products.length) {
+    return res.status(400).json({ error: 'Invalid product IDs' });
+  }
 
-  // Validate if all products has a quantity and price
+  // Validate if all products have a quantity and price
   const isValid = products.reduce((accumulator, currentValue) => {
     accumulator =
       currentValue.price != null &&
@@ -62,15 +61,15 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    // Create order
     const newOrder = await Order.create({
-      //   userID: user._id,
-      userID,
+      userID: user._id,
       products,
       creditCard,
       address,
     });
 
-    const user = {};
+    // Send receipt attached as a PDF to user's email
     Order.sendReceipt(user);
 
     res.status(200).json({ newOrder });
