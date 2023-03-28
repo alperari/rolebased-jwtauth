@@ -158,4 +158,81 @@ router.patch('/cancel', requireAuth, async (req, res) => {
   }
 });
 
+// Refund the order and products in that order
+// Only authenticated users
+router.patch('/refund', requireAuth, async (req, res) => {
+  const { user } = req;
+  const { orderID, productID } = req.body;
+
+  if (!orderID || !productID) {
+    return res.status(400).json({ error: 'Invalid inputs' });
+  }
+
+  try {
+    // Check if the order with OrderID exists
+    const order = await Order.findById(orderID);
+
+    if (!order) {
+      return res.status(400).json({ error: 'Order does not exist' });
+    }
+
+    // Check if order belongs to user
+    if (order.userID !== user._id) {
+      return res.status(400).json({ error: 'Order does not belong to user' });
+    }
+
+    // Check if order status is 'delivered'
+    if (order.status !== 'delivered') {
+      return res.status(400).json({ error: 'Order status is not delivered' });
+    }
+
+    // Check if the product with productID exists
+    const product = await Product.findById(productID);
+
+    if (!product) {
+      return res.status(400).json({ error: 'Product does not exist' });
+    }
+
+    // Check if product belongs to order
+    const productInOrder = order.products.find(
+      (product) => product.productID == productID
+    );
+
+    if (!productInOrder) {
+      return res
+        .status(400)
+        .json({ error: 'Product does not belong to order' });
+    }
+
+    // Check if the order is within 30 days of delivery
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = new Date(Date.now() - thirtyDays);
+
+    if (order.date < thirtyDaysAgo) {
+      return res.status(400).json({ error: 'Order is more than 30 days old' });
+    }
+
+    // Set product status under the order to 'refunded'
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: orderID, userID: user._id, 'products.productID': productID },
+      { $set: { 'products.$.status': 'refunded' } },
+      { new: true }
+    );
+
+    // Increase quantity of product in stock
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productID },
+      { $inc: { quantity: productInOrder.quantity } },
+      { new: true }
+    );
+
+    res.status(200).json({ order });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
+
+// Increase quantity of products in stock
+
 module.exports = router;
