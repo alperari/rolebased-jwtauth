@@ -218,9 +218,9 @@ router.delete('/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Approve/Reject (a.k.a. process) comment
+// Approve/Reject (a.k.a. update) comment
 // TODO: only product managers can approve/reject comments
-router.patch('/process/:id', async (req, res) => {
+router.patch('/update/:id', async (req, res) => {
   const { id } = req.params;
   const { newStatus } = req.body;
 
