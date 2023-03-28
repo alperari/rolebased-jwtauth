@@ -5,9 +5,11 @@ const cloudinary = require('cloudinary').v2;
 const Product = require('../models/product-model');
 const Rating = require('../models/rating-model');
 const Cart = require('../models/cart-model');
+const { transporter } = require('../utils/nodemailer');
 
 // Middlewares
 const { requireAuth } = require('../middlewares/auth');
+const Wishlist = require('../models/wishlist-model');
 
 const router = Router();
 
@@ -146,6 +148,11 @@ router.patch('/update/:id', async (req, res) => {
       new: true, // new:true will return updated document
     });
 
+    if (discount > 0) {
+      // TODO: Notify users who have this product in their wishlist
+      await notifyUsers(updatedProduct);
+    }
+
     res.status(200).json({ updatedProduct });
   } catch (error) {
     console.error(error);
@@ -169,5 +176,56 @@ router.get('/:id/ratings', async (req, res) => {
     res.status(400).json({ error });
   }
 });
+
+// Functions ---------------------------------------------------------------
+
+const notifyUsers = async (product) => {
+  try {
+    // Get all wishlists that have this product
+    const wishlists = await Wishlist.find({
+      productIDs: { $in: [product._id] },
+    });
+
+    const userIDs = wishlists.map((wishlist) => wishlist.userID);
+
+    const newPrice = product.price - (product.price * product.discount) / 100;
+
+    // Get all users who have this product in their wishlist
+    const users = await User.find({ _id: { $in: userIDs } });
+
+    // Send email to all users
+    users.forEach((user) => {
+      // Create the HTML for the email message
+      let messageHTML = '<h2>Wishlist items discounted!</h2>';
+      messageHTML += `
+        <div>
+          <h3>${product.name}</h3>
+          <p>ID: ${product._id}</p>
+          <p>Description: ${product.description}</p>
+          <p>Discount: ${product.discount}%</p>
+          <p>Price: ${newPrice}</p>
+          <img src="${product.imageURL}" alt="${product.name}" width="200px" />
+        </div>
+      `;
+
+      const message = {
+        from: NODEMAILER_EMAIL,
+        to: user.email,
+        subject: 'Wishlist Item Discounted!',
+        text: messageHTML,
+      };
+
+      transporter.sendMail(message, function (error, info) {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Email sent: ' + info.response);
+        }
+      });
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
 
 module.exports = router;
