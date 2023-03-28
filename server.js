@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 const fileupload = require('express-fileupload');
+const listEndpoints = require('express-list-endpoints');
 
 const app = express();
 
@@ -73,6 +74,10 @@ mongoose
     app.use('/rating', ratingRouter);
     app.use('/comment', commentRouter);
     app.use('/search', searchRouter);
+
+    listEndpoints(app).forEach((endpoint) => {
+      console.log(endpoint.methods[0], endpoint.path);
+    });
   })
   .catch((error) => {
     console.log(error);

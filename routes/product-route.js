@@ -122,7 +122,7 @@ router.post('/', async (req, res) => {
 
 // Update product price & discount
 // TODO: Only sales manager can update product price & discount
-router.patch('/:id', async (req, res) => {
+router.patch('/update/:id', async (req, res) => {
   const { id } = req.params;
   const { price, discount } = req.body;
 
