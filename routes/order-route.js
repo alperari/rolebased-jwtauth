@@ -1,5 +1,3 @@
-// Create order route
-
 const express = require('express');
 const Order = require('../models/order-model');
 const Product = require('../models/product-model');
@@ -158,7 +156,7 @@ router.patch('/cancel', requireAuth, async (req, res) => {
   }
 });
 
-// Refund the order and products in that order
+// Refund the 'delivered' order and products in that order
 // Only authenticated users
 router.patch('/refund', requireAuth, async (req, res) => {
   const { user } = req;
@@ -212,27 +210,19 @@ router.patch('/refund', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Order is more than 30 days old' });
     }
 
-    // Set product status under the order to 'refunded'
-    const updatedOrder = await Order.findOneAndUpdate(
-      { _id: orderID, userID: user._id, 'products.productID': productID },
-      { $set: { 'products.$.status': 'refunded' } },
-      { new: true }
-    );
+    // Create new refund (with status: "pending" by default)
+    const newRefund = await Refund.create({
+      userID: user._id,
+      orderID,
+      productID,
+      quantity: productInOrder.quantity,
+    });
 
-    // Increase quantity of product in stock
-    const updatedProduct = await Product.findOneAndUpdate(
-      { _id: productID },
-      { $inc: { quantity: productInOrder.quantity } },
-      { new: true }
-    );
-
-    res.status(200).json({ order });
+    res.status(200).json({ newRefund });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });
   }
 });
-
-// Increase quantity of products in stock
 
 module.exports = router;

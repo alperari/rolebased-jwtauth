@@ -83,22 +83,15 @@ router.get('/my', requireAuth, async (req, res) => {
   }
 });
 
-// Approve/reject refund
-// Only sales managers can update refund status (approve or reject)
-router.patch('/update', requireSalesManager, async (req, res) => {
+// Approve a refund
+// Only sales managers can update refund status approve
+router.patch('/approve', requireAuth, requireSalesManager, async (req, res) => {
   const { user } = req;
   const { refundID } = req.body;
-  const { status } = req.body;
 
-  if (!refundID || !status) {
-    console.error('Refund ID and status are required');
-    return res.status(400).json({ error: 'Refund ID and status are required' });
-  }
-
-  // Check if status input is a valid status
-  if (status == 'pending') {
-    console.error('Status cannot be pending');
-    return res.status(400).json({ error: 'Status cannot be pending' });
+  if (!refundID) {
+    console.error('Refund ID is required');
+    return res.status(400).json({ error: 'Refund ID is required' });
   }
 
   try {
@@ -108,12 +101,6 @@ router.patch('/update', requireSalesManager, async (req, res) => {
     if (!refund) {
       console.error('Refund does not exist');
       return res.status(400).json({ error: 'Refund does not exist' });
-    }
-
-    // Check if the user is owner of refund
-    if (refund.userID != user._id) {
-      console.error('User is not owner of refund');
-      return res.status(400).json({ error: 'User is not owner of refund' });
     }
 
     // Check if refund status is "pending"
@@ -136,7 +123,51 @@ router.patch('/update', requireSalesManager, async (req, res) => {
       { new: true }
     );
 
+    // TODO: Send approval email to user
+    // TODO: Increase user's wallet balance?
+
     res.status(200).json({ updatedRefund });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
+
+// Reject a refund
+// Only sales managers can update refund status reject
+router.patch('/reject', requireAuth, requireSalesManager, async (req, res) => {
+  const { user } = req;
+  const { refundID } = req.body;
+
+  if (!refundID) {
+    console.error('Refund ID is required');
+    return res.status(400).json({ error: 'Refund ID is required' });
+  }
+
+  try {
+    const refund = await Refund.findById(refundID);
+
+    // Check if refund with refundID exists
+    if (!refund) {
+      console.error('Refund does not exist');
+      return res.status(400).json({ error: 'Refund does not exist' });
+    }
+
+    // Check if refund status is "pending"
+    if (refund.status != 'pending') {
+      console.error('Refund is not pending');
+
+      return res.status(400).json({ error: 'Refund is not pending' });
+    }
+
+    // Update refund status
+    const updatedRefund = await Refund.findByIdAndUpdate(
+      { _id: refundID },
+      { status: 'rejected' },
+      { new: true }
+    );
+
+    return res.status(200).json({ updatedRefund });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });

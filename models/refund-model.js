@@ -6,6 +6,11 @@ const refundSchema = new Schema({
     type: String,
     required: true,
   },
+  orderID: {
+    type: String,
+    required: true,
+  },
+
   productID: {
     type: String,
     required: true,
