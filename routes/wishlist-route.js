@@ -10,7 +10,7 @@ const router = Router();
 // Endpoints--------------------------------------------------------------
 
 // Get my wishlist
-router.get('/', requireAuth, async (req, res) => {
+router.get('/my', requireAuth, async (req, res) => {
   const { user } = req;
 
   try {

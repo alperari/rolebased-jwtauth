@@ -12,7 +12,7 @@ requireAuth = (req, res, next) => {
     req.headers.authorization.split(' ')[1];
 
   if (!token) {
-    if (err) return res.sendStatus(401);
+    return res.sendStatus(401);
   }
 
   jwt.verify(token, JWT_SECRET, function (err, user) {

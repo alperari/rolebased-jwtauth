@@ -5,7 +5,11 @@ const cloudinary = require('cloudinary').v2;
 const Product = require('../models/product-model');
 const Rating = require('../models/rating-model');
 const Cart = require('../models/cart-model');
+const User = require('../models/user-model');
+
 const { transporter } = require('../utils/nodemailer');
+
+const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
 
 // Middlewares
 const { requireAuth } = require('../middlewares/auth');
@@ -105,7 +109,7 @@ router.post('/', async (req, res) => {
     const product = await Product.create({
       name,
       price: -1, // Product price will be set by sales manager later
-      discount: -1, // Product discount will be set by sales manager later
+      discount: 0, // Product discount will be set by sales manager later
       description,
       category,
       imageURL,
@@ -128,8 +132,12 @@ router.patch('/update/:id', async (req, res) => {
   const { id } = req.params;
   const { price, discount } = req.body;
 
-  if (!price || !discount) {
+  if (price == null || discount == null) {
     return res.status(400).json({ error: 'Price or discount is missing' });
+  }
+
+  if (price < 0 || discount < 0) {
+    return res.status(400).json({ error: 'Price or discount is invalid' });
   }
 
   try {
@@ -183,7 +191,7 @@ const notifyUsers = async (product) => {
   try {
     // Get all wishlists that have this product
     const wishlists = await Wishlist.find({
-      productIDs: { $in: [product._id] },
+      productIDs: { $in: [product.id] },
     });
 
     const userIDs = wishlists.map((wishlist) => wishlist.userID);
@@ -194,16 +202,18 @@ const notifyUsers = async (product) => {
     const users = await User.find({ _id: { $in: userIDs } });
 
     // Send email to all users
-    users.forEach((user) => {
+    for (const user of users) {
       // Create the HTML for the email message
-      let messageHTML = '<h2>Wishlist items discounted!</h2>';
+      let messageHTML =
+        '<h2>One Of Your Wishlist Item Has Been Discounted!</h2>';
       messageHTML += `
         <div>
-          <h3>${product.name}</h3>
-          <p>ID: ${product._id}</p>
-          <p>Description: ${product.description}</p>
-          <p>Discount: ${product.discount}%</p>
-          <p>Price: ${newPrice}</p>
+          <h3><b>${product.name} </b></h3>
+          <p>ID: <b>${product._id} </b></p>
+          <p>Description: <b>${product.description} </b></p>
+          <p>Discount: <b><b>${product.discount} </b>%</p>
+          <p>Previous before discount: <b>${product.price} </b></p>
+          <p>Price after discount: <b>${newPrice}</p>
           <img src="${product.imageURL}" alt="${product.name}" width="200px" />
         </div>
       `;
@@ -212,7 +222,7 @@ const notifyUsers = async (product) => {
         from: NODEMAILER_EMAIL,
         to: user.email,
         subject: 'Wishlist Item Discounted!',
-        text: messageHTML,
+        html: messageHTML,
       };
 
       transporter.sendMail(message, function (error, info) {
@@ -222,7 +232,7 @@ const notifyUsers = async (product) => {
           console.log('Email sent: ' + info.response);
         }
       });
-    });
+    }
   } catch (error) {
     console.error(error);
   }
