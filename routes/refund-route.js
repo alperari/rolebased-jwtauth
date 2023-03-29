@@ -4,6 +4,10 @@ const Refund = require('..models/refund-model');
 const Product = require('../models/product-model');
 const { requireAuth, requireSalesManager } = require('../middlewares/auth');
 
+const { transporter } = require('../utils/nodemailer');
+
+const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
+
 const router = express.Router();
 
 // Endpoints--------------------------------------------------------------
@@ -123,7 +127,7 @@ router.patch('/approve', requireAuth, requireSalesManager, async (req, res) => {
       { new: true }
     );
 
-    // Increase user's accont balance
+    // Increase user's account balance
     const totalRefundPrice = refund.quantity * refund.price;
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -132,7 +136,8 @@ router.patch('/approve', requireAuth, requireSalesManager, async (req, res) => {
       { new: true }
     );
 
-    // TODO: Send approval email to user
+    // Send approval to user's email
+    await sendApprovalEmail(updatedUser, updatedRefund, updatedProduct);
 
     res.status(200).json({ updatedRefund });
   } catch (error) {
@@ -225,3 +230,39 @@ router.delete('/delete', requireAuth, async (req, res) => {
     res.status(400).json({ error });
   }
 });
+
+// Send email to user
+const sendApprovalEmail = async (user, refund, product) => {
+  let messageHTML = '<h2>Your Refund Request Is Accepted!</h2>';
+  messageHTML += `
+        <div>
+          <p>Refund ID: <b>${refund._id} </b></p>
+          <p>Order ID: <b>${refund.orderID} </b></p>
+          <p>Refunded Product Name: <b>${product.name} </b></p>
+          <p>Refunded Product ID: <b>${product._id} </b></p>
+          <p>Refunded Product Quantity: <b>${refund.quantity} </b></p>
+          <p>Product Price: <b>$${refund.price} </b></p>
+          <img src="${product.imageURL}" alt="${product.name}" width="100px" />
+          <br>
+          <h4>$${
+            refund.price * refund.quantity
+          } has been refunded to your account balance.</h4>
+          <p>Thank you for shopping with us!</p>
+        </div>
+      `;
+
+  const message = {
+    from: NODEMAILER_EMAIL,
+    to: updatedUser.email,
+    subject: 'Refund Approved!',
+    html: messageHTML,
+  };
+
+  transporter.sendMail(message, function (error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
+};

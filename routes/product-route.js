@@ -6,6 +6,7 @@ const Product = require('../models/product-model');
 const Rating = require('../models/rating-model');
 const Cart = require('../models/cart-model');
 const User = require('../models/user-model');
+const Wishlist = require('../models/wishlist-model');
 
 const { transporter } = require('../utils/nodemailer');
 
@@ -17,7 +18,6 @@ const {
   requireSalesManager,
   requireProductManager,
 } = require('../middlewares/auth');
-const Wishlist = require('../models/wishlist-model');
 
 const router = Router();
 
