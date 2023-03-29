@@ -156,7 +156,7 @@ router.patch('/cancel', requireAuth, async (req, res) => {
   }
 });
 
-// Refund the 'delivered' order and products in that order
+// Create refund request for a product in a "delivered" order
 // Only authenticated users
 router.patch('/refund', requireAuth, async (req, res) => {
   const { user } = req;
@@ -193,7 +193,7 @@ router.patch('/refund', requireAuth, async (req, res) => {
 
     // Check if product belongs to order
     const productInOrder = order.products.find(
-      (product) => product.productID == productID
+      (prod) => prod.productID == productID
     );
 
     if (!productInOrder) {
@@ -215,7 +215,8 @@ router.patch('/refund', requireAuth, async (req, res) => {
       userID: user._id,
       orderID,
       productID,
-      quantity: productInOrder.quantity,
+      quantity: productInOrder.quantity, // This quantity will be returned back to stock
+      price: productInOrder.buyPrice, // This amount of money will be returned back to user's balance
     });
 
     res.status(200).json({ newRefund });

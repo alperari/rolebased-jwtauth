@@ -123,8 +123,16 @@ router.patch('/approve', requireAuth, requireSalesManager, async (req, res) => {
       { new: true }
     );
 
+    // Increase user's accont balance
+    const totalRefundPrice = refund.quantity * refund.price;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      { _id: refund.userID },
+      { $inc: { balance: totalRefundPrice } },
+      { new: true }
+    );
+
     // TODO: Send approval email to user
-    // TODO: Increase user's wallet balance?
 
     res.status(200).json({ updatedRefund });
   } catch (error) {

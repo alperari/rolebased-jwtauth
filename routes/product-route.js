@@ -12,7 +12,11 @@ const { transporter } = require('../utils/nodemailer');
 const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
 
 // Middlewares
-const { requireAuth } = require('../middlewares/auth');
+const {
+  requireAuth,
+  requireSalesManager,
+  requireProductManager,
+} = require('../middlewares/auth');
 const Wishlist = require('../models/wishlist-model');
 
 const router = Router();
@@ -82,8 +86,8 @@ router.get('/categories', async (req, res) => {
 });
 
 // Create product
-// TODO: Only product manager can create product
-router.post('/', async (req, res) => {
+// Only product manager can create product
+router.post('/', requireAuth, requireProductManager, async (req, res) => {
   const {
     name,
     description,
@@ -127,63 +131,51 @@ router.post('/', async (req, res) => {
 });
 
 // Update product price & discount
-// TODO: Only sales manager can update product price & discount
-router.patch('/update/:id', async (req, res) => {
-  const { id } = req.params;
-  const { price, discount } = req.body;
+// Only sales manager can update product price & discount
+router.patch(
+  '/update/:id',
+  requireAuth,
+  requireSalesManager,
+  async (req, res) => {
+    const { id } = req.params;
+    const { price, discount } = req.body;
 
-  if (price == null || discount == null) {
-    return res.status(400).json({ error: 'Price or discount is missing' });
-  }
-
-  if (price < 0 || discount < 0) {
-    return res.status(400).json({ error: 'Price or discount is invalid' });
-  }
-
-  try {
-    const filter = { _id: id };
-    const update = {};
-
-    if (price > 0) {
-      update.price = price;
+    if (price == null || discount == null) {
+      return res.status(400).json({ error: 'Price or discount is missing' });
     }
 
-    if (discount > 0) {
-      update.discount = discount;
+    if (price < 0 || discount < 0) {
+      return res.status(400).json({ error: 'Price or discount is invalid' });
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(filter, update, {
-      new: true, // new:true will return updated document
-    });
+    try {
+      const filter = { _id: id };
+      const update = {};
 
-    if (discount > 0) {
-      // TODO: Notify users who have this product in their wishlist
-      await notifyUsers(updatedProduct);
+      if (price > 0) {
+        update.price = price;
+      }
+
+      if (discount > 0) {
+        update.discount = discount;
+      }
+
+      const updatedProduct = await Product.findByIdAndUpdate(filter, update, {
+        new: true, // new:true will return updated document
+      });
+
+      if (discount > 0) {
+        // TODO: Notify users who have this product in their wishlist
+        await notifyUsers(updatedProduct);
+      }
+
+      res.status(200).json({ updatedProduct });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error });
     }
-
-    res.status(200).json({ updatedProduct });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
   }
-});
-
-//Get all ratings for a product
-router.get('/:id/ratings', async (req, res) => {
-  const { id } = req.params;
-
-  if (!id) {
-    return res.status(400).json({ error: 'Product ID is missing' });
-  }
-
-  try {
-    const ratings = await Rating.find({ productID: id });
-    res.status(200).json({ ratings });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
-  }
-});
+);
 
 // Functions ---------------------------------------------------------------
 

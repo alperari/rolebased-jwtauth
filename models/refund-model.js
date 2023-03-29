@@ -24,6 +24,10 @@ const refundSchema = new Schema({
     type: Number,
     required: true,
   },
+  price: {
+    type: Number,
+    required: true,
+  },
   date: {
     type: Date,
     default: Date.now,
