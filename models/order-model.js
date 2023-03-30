@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const PDFDocument = require('pdfkit');
 const axios = require('axios');
+const bcrypt = require('bcrypt');
 
 const { transporter } = require('../utils/nodemailer');
 const { uploadPDF } = require('../utils/cloudinary-uploader');
@@ -48,7 +49,6 @@ const orderSchema = new Schema({
 
 // Hooks ----------------------------------------
 orderSchema.pre('save', async function (next) {
-  console.log('Order is being saved: ', this.id);
   try {
     // 1-Generate receipt as PDF
     // and upload it to cloudinary
@@ -75,6 +75,10 @@ orderSchema.pre('save', async function (next) {
         },
       ],
     };
+
+    // 3-Encrypt credit card information
+    const salt = await bcrypt.genSalt();
+    this.creditCard = await bcrypt.hash(this.creditCard, salt);
 
     transporter.sendMail(message, (err, info) => {
       if (err) {
