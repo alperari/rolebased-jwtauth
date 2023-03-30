@@ -24,7 +24,7 @@ requireAuth = (req, res, next) => {
 };
 
 // Middleware to check if user is authenticated and is a product manager
-requireProductManager = (req, res, next) => {
+requirePManager = (req, res, next) => {
   const { user } = req;
 
   if (!user) {
@@ -39,7 +39,7 @@ requireProductManager = (req, res, next) => {
 };
 
 // Middleware to check if user is authenticated and is a sales manager
-requireSalesManager = (req, res, next) => {
+requireSManager = (req, res, next) => {
   const { user } = req;
 
   if (!user) {
@@ -70,7 +70,7 @@ requireAdmin = (req, res, next) => {
 
 module.exports = {
   requireAuth,
-  requireProductManager,
-  requireSalesManager,
+  requirePManager,
+  requireSManager,
   requireAdmin,
 };

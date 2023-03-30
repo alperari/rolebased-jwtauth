@@ -2,7 +2,7 @@ const express = require('express');
 const Order = require('../models/order-model');
 const Refund = require('..models/refund-model');
 const Product = require('../models/product-model');
-const { requireAuth, requireSalesManager } = require('../middlewares/auth');
+const { requireAuth, requireSManager } = require('../middlewares/auth');
 
 const { transporter } = require('../utils/nodemailer');
 
@@ -14,7 +14,7 @@ const router = express.Router();
 
 // Get all refunds
 // Only sales managers can see all refunds
-router.get('/all', requireAuth, requireSalesManager, async (req, res) => {
+router.get('/all', requireAuth, requireSManager, async (req, res) => {
   const { user } = req;
 
   try {
@@ -29,7 +29,7 @@ router.get('/all', requireAuth, requireSalesManager, async (req, res) => {
 
 // Get all pending refunds
 // Only sales managers can see all pending refunds
-router.get('/pending', requireAuth, requireSalesManager, async (req, res) => {
+router.get('/pending', requireAuth, requireSManager, async (req, res) => {
   const { user } = req;
 
   try {
@@ -44,7 +44,7 @@ router.get('/pending', requireAuth, requireSalesManager, async (req, res) => {
 
 // Get all approved refunds
 // Only sales managers can see all approved refunds
-router.get('/approved', requireAuth, requireSalesManager, async (req, res) => {
+router.get('/approved', requireAuth, requireSManager, async (req, res) => {
   const { user } = req;
 
   try {
@@ -59,7 +59,7 @@ router.get('/approved', requireAuth, requireSalesManager, async (req, res) => {
 
 // Get all rejected refunds
 // Only sales managers can see all rejected refunds
-router.get('/rejected', requireAuth, requireSalesManager, async (req, res) => {
+router.get('/rejected', requireAuth, requireSManager, async (req, res) => {
   const { user } = req;
 
   try {
@@ -89,7 +89,7 @@ router.get('/my', requireAuth, async (req, res) => {
 
 // Approve a refund
 // Only sales managers can update refund status approve
-router.patch('/approve', requireAuth, requireSalesManager, async (req, res) => {
+router.patch('/approve', requireAuth, requireSManager, async (req, res) => {
   const { user } = req;
   const { refundID } = req.body;
 
@@ -148,7 +148,7 @@ router.patch('/approve', requireAuth, requireSalesManager, async (req, res) => {
 
 // Reject a refund
 // Only sales managers can update refund status reject
-router.patch('/reject', requireAuth, requireSalesManager, async (req, res) => {
+router.patch('/reject', requireAuth, requireSManager, async (req, res) => {
   const { user } = req;
   const { refundID } = req.body;
 

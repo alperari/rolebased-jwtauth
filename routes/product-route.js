@@ -16,8 +16,8 @@ const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
 // Middlewares
 const {
   requireAuth,
-  requireSalesManager,
-  requireProductManager,
+  requireSManager,
+  requirePManager,
 } = require('../middlewares/auth');
 
 const router = Router();
@@ -88,7 +88,7 @@ router.get('/categories', async (req, res) => {
 
 // Create product
 // Only product manager can create product
-router.post('/', requireAuth, requireProductManager, async (req, res) => {
+router.post('/', requireAuth, requirePManager, async (req, res) => {
   const {
     name,
     description,
@@ -128,50 +128,45 @@ router.post('/', requireAuth, requireProductManager, async (req, res) => {
 
 // Update product price & discount
 // Only sales manager can update product price & discount
-router.patch(
-  '/update/:id',
-  requireAuth,
-  requireSalesManager,
-  async (req, res) => {
-    const { id } = req.params;
-    const { price, discount } = req.body;
+router.patch('/update/:id', requireAuth, requireSManager, async (req, res) => {
+  const { id } = req.params;
+  const { price, discount } = req.body;
 
-    if (price == null || discount == null) {
-      return res.status(400).json({ error: 'Price or discount is missing' });
-    }
-
-    if (price < 0 || discount < 0) {
-      return res.status(400).json({ error: 'Price or discount is invalid' });
-    }
-
-    try {
-      const filter = { _id: id };
-      const update = {};
-
-      if (price > 0) {
-        update.price = price;
-      }
-
-      if (discount > 0) {
-        update.discount = discount;
-      }
-
-      const updatedProduct = await Product.findByIdAndUpdate(filter, update, {
-        new: true, // new:true will return updated document
-      });
-
-      if (discount > 0) {
-        // TODO: Notify users who have this product in their wishlist
-        await notifyUsers(updatedProduct);
-      }
-
-      res.status(200).json({ updatedProduct });
-    } catch (error) {
-      console.error(error);
-      res.status(400).json({ error });
-    }
+  if (price == null || discount == null) {
+    return res.status(400).json({ error: 'Price or discount is missing' });
   }
-);
+
+  if (price < 0 || discount < 0) {
+    return res.status(400).json({ error: 'Price or discount is invalid' });
+  }
+
+  try {
+    const filter = { _id: id };
+    const update = {};
+
+    if (price > 0) {
+      update.price = price;
+    }
+
+    if (discount > 0) {
+      update.discount = discount;
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(filter, update, {
+      new: true, // new:true will return updated document
+    });
+
+    if (discount > 0) {
+      // Notify users who have this product in their wishlist
+      await notifyUsers(updatedProduct);
+    }
+
+    res.status(200).json({ updatedProduct });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
 
 // Functions ---------------------------------------------------------------
 

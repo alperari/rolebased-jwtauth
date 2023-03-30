@@ -2,8 +2,13 @@
 
 const { Router } = require('express');
 const Comment = require('../models/comment-model');
-const { requireAuth } = require('../middlewares/auth');
 const Product = require('../models/product-model');
+
+const {
+  requireAuth,
+  requireSManager,
+  requirePManager,
+} = require('../middlewares/auth');
 
 const router = Router();
 
@@ -35,23 +40,28 @@ router.get('/my/:productID', requireAuth, async (req, res) => {
 });
 
 // Get all comments for a product
-// TODO: only product owners can get all comments
-router.get('/all/:productID', async (req, res) => {
-  const { productID } = req.params;
+// Only product owners can get all comments
+router.get(
+  '/all/:productID',
+  requireAuth,
+  requirePManager,
+  async (req, res) => {
+    const { productID } = req.params;
 
-  if (!productID) {
-    console.error('Product ID is required');
-    return res.status(400).json({ error: 'Product ID is required' });
-  }
+    if (!productID) {
+      console.error('Product ID is required');
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
 
-  try {
-    const comments = await Comment.find({ productID });
-    res.status(200).json({ comments });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
+    try {
+      const comments = await Comment.find({ productID });
+      res.status(200).json({ comments });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error });
+    }
   }
-});
+);
 
 // Get all approved comments for a product
 // Everyone
@@ -74,44 +84,54 @@ router.get('/approved/:productID', async (req, res) => {
 });
 
 // Get all pending comments for a product
-// TODO: only product managers can get pending comments
-router.get('/pending/:productID', async (req, res) => {
-  const { productID } = req.params;
+// Only product managers can get pending comments
+router.get(
+  '/pending/:productID',
+  requireAuth,
+  requirePManager,
+  async (req, res) => {
+    const { productID } = req.params;
 
-  if (!productID) {
-    console.error('Product ID is required');
-    return res.status(400).json({ error: 'Product ID is required' });
+    if (!productID) {
+      console.error('Product ID is required');
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
+
+    try {
+      const comments = await Comment.find({ productID, status: 'pending' });
+
+      res.status(200).json({ comments });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error });
+    }
   }
-
-  try {
-    const comments = await Comment.find({ productID, status: 'pending' });
-
-    res.status(200).json({ comments });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
-  }
-});
+);
 
 // Get all rejected comments for a product
-// TODO: only product managers can get rejected comments
-router.get('/rejected/:productID', async (req, res) => {
-  const { productID } = req.params;
+// Only product managers can get rejected comments
+router.get(
+  '/rejected/:productID',
+  requireAuth,
+  requirePManager,
+  async (req, res) => {
+    const { productID } = req.params;
 
-  if (!productID) {
-    console.error('Product ID is required');
-    return res.status(400).json({ error: 'Product ID is required' });
+    if (!productID) {
+      console.error('Product ID is required');
+      return res.status(400).json({ error: 'Product ID is required' });
+    }
+
+    try {
+      const comments = await Comment.find({ productID, status: 'rejected' });
+
+      res.status(200).json({ comments });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error });
+    }
   }
-
-  try {
-    const comments = await Comment.find({ productID, status: 'rejected' });
-
-    res.status(200).json({ comments });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
-  }
-});
+);
 
 // Create comment
 // Only authenticated users can create comments
@@ -219,8 +239,8 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 // Approve/Reject (a.k.a. update) comment
-// TODO: only product managers can approve/reject comments
-router.patch('/update/:id', async (req, res) => {
+// Only product managers can approve/reject comments
+router.patch('/update/:id', requireAuth, requirePManager, async (req, res) => {
   const { id } = req.params;
   const { newStatus } = req.body;
 
