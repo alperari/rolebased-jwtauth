@@ -50,39 +50,24 @@ const orderSchema = new Schema({
 orderSchema.pre('save', async function (next) {
   console.log('Order is being saved: ', this.id);
   try {
-    // TODO: Generate receipt as PDF and upload it to cloudinary
+    // 1-Generate receipt as PDF
+    // and upload it to cloudinary
+    // then save the URL to the document
 
-    const uploadResult = await uploadPDF(this);
+    const { uploadResult, buffers } = await uploadPDF(this);
 
     if (uploadResult.error) {
       next(uploadResult.error);
     }
 
     this.receiptURL = uploadResult.secure_url;
-    next();
 
-    // TODO: Upload PDF to cloudinary
-    // TODO: Get the URL of the PDF and save it into document
-    // TODO: Send receipt to the user's email as a PDF
-  } catch (err) {
-    next(err);
-  }
-});
-
-orderSchema.statics.sendReceipt = async function (user) {
-  // TODO: Send receipt to the user's email as a PDF
-  console.log("Sending receipt to user's email:", 'alperari@sabanciuniv.edu');
-
-  const doc = new PDFDocument();
-  let buffers = [];
-  doc.on('data', buffers.push.bind(buffers));
-
-  doc.on('end', () => {
+    // 2-Send receipt to the user's email as a PDF
     const message = {
       from: NODEMAILER_EMAIL,
-      to: 'alperari@sabanciuniv.edu',
+      to: this.receiverEmail,
       subject: 'Your Receipt',
-      text: 'Please find the PDF file attached.',
+      text: 'Please find the receipt PDF file attached.',
       attachments: [
         {
           filename: 'receipt.pdf',
@@ -98,25 +83,12 @@ orderSchema.statics.sendReceipt = async function (user) {
         console.log(`Email sent: ${info.response}`);
       }
     });
-  });
 
-  // PDF content comes here ---------------------
-  doc.text('Hello, World!');
-  doc.fontSize(14).text('Title', { align: 'center' }).moveDown(0.5);
-  doc.fontSize(10).text('Description', { align: 'center' }).moveDown(0.5);
-
-  // Image
-  const image = await axios.get(
-    'https://www.google.com/images/srpr/logo11w.png',
-    {
-      responseType: 'arraybuffer',
-    }
-  );
-
-  doc.image(image.data, { align: 'center', height: 100 }).moveDown(0.5);
-
-  doc.end();
-};
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
 
 const Order = mongoose.model('Order', orderSchema);
 module.exports = Order;

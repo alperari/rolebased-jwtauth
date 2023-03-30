@@ -85,9 +85,6 @@ router.post('/', requireAuth, async (req, res) => {
       receiverEmail: user.email,
     });
 
-    // Send receipt to user's email, attached as a PDF document
-    // Order.sendReceipt(user);
-
     // Decrease quantity of products in stock
     products.forEach(async (product) => {
       const updatedProduct = await Product.findOneAndUpdate(

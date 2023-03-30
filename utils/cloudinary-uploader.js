@@ -7,7 +7,7 @@ const Product = require('../models/product-model');
 
 // Upload PDF (here it is receipt) to cloudinary and return secure URL
 const uploadPDF = async (order) => {
-  let result = false;
+  let uploadResult = false;
 
   const doc = new PDFDocument();
   let buffers = [];
@@ -95,7 +95,7 @@ const uploadPDF = async (order) => {
   doc.on('end', async () => {
     // When PDF is ready, upload it to cloudinary
     try {
-      const uploadResult = await uploadFromBuffer(
+      const result = await uploadFromBuffer(
         Buffer.concat(buffers),
         'receipt_' + order.id,
         'pdf',
@@ -104,20 +104,20 @@ const uploadPDF = async (order) => {
         true
       );
 
-      result = uploadResult;
+      uploadResult = result;
     } catch (error) {
       console.log(error);
       console.log('Failed to upload receipt PDF to cloudinary!');
-      result = { error };
+      uploadResult = { error };
     }
   });
 
-  while (!result) {
+  while (!uploadResult) {
     console.log('Uploading receipt PDF to cloudinary. This might take time...');
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   console.log('Receipt PDF is uploaded.');
-  return result;
+  return { uploadResult, buffers };
 };
 
 // Upload image to cloudinary and return secure URL
