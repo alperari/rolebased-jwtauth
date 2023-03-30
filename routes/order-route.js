@@ -76,11 +76,12 @@ router.post('/', requireAuth, async (req, res) => {
 
   try {
     //  Create order
-    const newOrder = await Order.create({
+    const order = await Order.create({
       userID: user._id,
       products,
       creditCard,
       address,
+      receiverEmail: user.email,
     });
 
     // Send receipt to user's email, attached as a PDF document
@@ -102,7 +103,7 @@ router.post('/', requireAuth, async (req, res) => {
       { new: true }
     );
 
-    res.status(200).json({ newOrder });
+    res.status(200).json({ order });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });

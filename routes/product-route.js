@@ -9,6 +9,7 @@ const User = require('../models/user-model');
 const Wishlist = require('../models/wishlist-model');
 
 const { transporter } = require('../utils/nodemailer');
+const { uploadImage } = require('../utils/cloudinary-uploader');
 
 const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
 
@@ -100,14 +101,9 @@ router.post('/', requireAuth, requireProductManager, async (req, res) => {
 
   const image = req.files.image;
   try {
-    // Upload image to cloudinary
-    const result = await cloudinary.uploader.upload(image.tempFilePath, {
-      resource_type: 'auto',
-      upload_preset: 'uzvxfwtx',
-      folder: 'products',
-    });
+    // Upload image to cloudinary and get secure URL
 
-    const imageURL = result.secure_url;
+    const imageURL = uploadImage(image);
 
     // Create product
     const product = await Product.create({
@@ -206,7 +202,7 @@ const notifyUsers = async (product) => {
           <p>Discount: <b><b>${product.discount} </b>%</p>
           <p>Previous before discount: <b>${product.price} </b></p>
           <p>Price after discount: <b>${newPrice}</p>
-          <img src="${product.imageURL}" alt="${product.name}" width="200px" />
+          <img src="${product.imageURL}" alt="${product.name}" width="100px" />
         </div>
       `;
 

@@ -35,11 +35,23 @@ const orderSchema = new Schema({
     type: String,
     required: true,
   },
+  receiverEmail: {
+    type: String,
+    required: true,
+  },
+  receiptURL: {
+    type: String,
+  },
 });
 
 // Hooks ----------------------------------------
 orderSchema.post('save', function (doc, next) {
   console.log('Order saved: ', doc.id);
+  // TODO: Generate receipt as PDF
+  // TODO: Upload PDF to cloudinaryç
+  // TODO: Get the URL of the PDF and save it into document
+  // TODO: Send receipt to the user's email as a PDF
+
   next();
 });
 
