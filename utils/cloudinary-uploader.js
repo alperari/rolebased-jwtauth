@@ -1,16 +1,18 @@
-const cloudinary = require('../utils/cloudinary');
+const cloudinary = require('cloudinary').v2;
 const PDFDocument = require('pdfkit');
+const axios = require('axios');
+const streamifier = require('streamifier');
 
 // Upload PDF (here it is receipt) to cloudinary and return secure URL
 const uploadPDF = async (order) => {
   // Create PDF
+
+  let result = false;
+
   const doc = new PDFDocument();
   let buffers = [];
-  doc.on('data', buffers.push.bind(buffers));
 
-  doc.on('end', () => {
-    uploadFromBuffer(Buffer.concat(buffers));
-  });
+  doc.on('data', buffers.push.bind(buffers));
 
   // PDF content comes here ---------------------
   doc.text('Hello, World!');
@@ -29,13 +31,30 @@ const uploadPDF = async (order) => {
 
   doc.end();
 
-  const result = await cloudinary.uploader.upload(imageFile.tempFilePath, {
-    resource_type: 'image',
-    upload_preset: 'uzvxfwtx',
-    folder: 'products',
+  doc.on('end', async () => {
+    // When PDF is ready, upload it to cloudinary
+    try {
+      const uploadResult = await uploadFromBuffer(
+        Buffer.concat(buffers),
+        'receipt_' + order.id,
+        'receipts',
+        'image',
+        true
+      );
+
+      result = uploadResult;
+    } catch (error) {
+      console.log(error);
+      result = { error };
+    }
   });
 
-  return result.secure_url;
+  while (!result) {
+    console.log('Uploading receipt PDF to cloudinary. This might take time...');
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  console.log('Receipt PDF is uploaded.');
+  return result;
 };
 
 // Upload image to cloudinary and return secure URL
@@ -54,11 +73,20 @@ const uploadImage = async (imageFile) => {
   }
 };
 
-let uploadFromBuffer = (buffer) => {
+let uploadFromBuffer = (
+  buffer,
+  public_id,
+  folderName,
+  resourceType,
+  hasPages
+) => {
   return new Promise((resolve, reject) => {
     let cld_upload_stream = cloudinary.uploader.upload_stream(
       {
-        folder: 'foo',
+        public_id: public_id,
+        folder: folderName,
+        resource_type: resourceType,
+        pages: hasPages,
       },
       (error, result) => {
         if (result) {

@@ -1,6 +1,7 @@
 const express = require('express');
 const Order = require('../models/order-model');
 const Product = require('../models/product-model');
+const Cart = require('../models/cart-model');
 const { requireAuth } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -34,7 +35,7 @@ router.post('/', requireAuth, async (req, res) => {
 
   // Check if productIDs are valid
   const productsInDB = await Product.find({
-    _id: { $in: products.map((element) => element._id) },
+    _id: { $in: products.map((element) => element.productID) },
   });
 
   if (productsInDB.length !== products.length) {
@@ -44,10 +45,10 @@ router.post('/', requireAuth, async (req, res) => {
   // Validate if all products have a quantity and price
   const isValid = products.reduce((accumulator, currentValue) => {
     accumulator =
-      currentValue.price != null &&
-      currentValue.price > 0 &&
+      currentValue.buyPrice != null &&
+      currentValue.buyPrice > 0 &&
       currentValue.quantity != null &&
-      currentValue.price > 0 &&
+      currentValue.buyPrice > 0 &&
       accumulator;
 
     return accumulator;
@@ -62,7 +63,7 @@ router.post('/', requireAuth, async (req, res) => {
   // Validate if all products have sufficient quantity in stock
   const isSufficient = products.reduce((accumulator, currentValue) => {
     const product = productsInDB.find(
-      (product) => product._id == currentValue._id
+      (prod) => prod._id == currentValue.productID
     );
 
     accumulator = product.quantity >= currentValue.quantity && accumulator;
@@ -85,12 +86,12 @@ router.post('/', requireAuth, async (req, res) => {
     });
 
     // Send receipt to user's email, attached as a PDF document
-    Order.sendReceipt(user);
+    // Order.sendReceipt(user);
 
     // Decrease quantity of products in stock
     products.forEach(async (product) => {
       const updatedProduct = await Product.findOneAndUpdate(
-        { _id: product._id },
+        { _id: product.productID },
         { $inc: { quantity: -product.quantity } },
         { new: true }
       );

@@ -103,7 +103,7 @@ router.post('/', requireAuth, requireProductManager, async (req, res) => {
   try {
     // Upload image to cloudinary and get secure URL
 
-    const imageURL = uploadImage(image);
+    const imageURL = await uploadImage(image);
 
     // Create product
     const product = await Product.create({

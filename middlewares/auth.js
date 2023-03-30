@@ -31,7 +31,7 @@ requireProductManager = (req, res, next) => {
     return res.sendStatus(401); //Unauthorized
   }
 
-  if (user.role !== 'productManager') {
+  if (user.role !== 'productManager' && user.role !== 'admin') {
     return res.sendStatus(403); //Forbidden
   }
 
@@ -46,7 +46,7 @@ requireSalesManager = (req, res, next) => {
     return res.sendStatus(401); //Unauthorized
   }
 
-  if (user.role !== 'salesManager') {
+  if (user.role !== 'salesManager' && user.role !== 'admin') {
     return res.sendStatus(403); //Forbidden
   }
 

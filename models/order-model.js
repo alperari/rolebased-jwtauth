@@ -5,6 +5,7 @@ const PDFDocument = require('pdfkit');
 const axios = require('axios');
 
 const { transporter } = require('../utils/nodemailer');
+const { uploadPDF } = require('../utils/cloudinary-uploader');
 
 const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
 
@@ -41,18 +42,31 @@ const orderSchema = new Schema({
   },
   receiptURL: {
     type: String,
+    default: '',
   },
 });
 
 // Hooks ----------------------------------------
-orderSchema.post('save', function (doc, next) {
-  console.log('Order saved: ', doc.id);
-  // TODO: Generate receipt as PDF
-  // TODO: Upload PDF to cloudinaryç
-  // TODO: Get the URL of the PDF and save it into document
-  // TODO: Send receipt to the user's email as a PDF
+orderSchema.pre('save', async function (next) {
+  console.log('Order is being saved: ', this.id);
+  try {
+    // TODO: Generate receipt as PDF and upload it to cloudinary
 
-  next();
+    const uploadResult = await uploadPDF(this);
+
+    if (uploadResult.error) {
+      next(uploadResult.error);
+    }
+
+    this.receiptURL = uploadResult.url;
+    next();
+
+    // TODO: Upload PDF to cloudinary
+    // TODO: Get the URL of the PDF and save it into document
+    // TODO: Send receipt to the user's email as a PDF
+  } catch (err) {
+    next(err);
+  }
 });
 
 orderSchema.statics.sendReceipt = async function (user) {
