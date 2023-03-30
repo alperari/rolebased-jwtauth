@@ -58,7 +58,7 @@ orderSchema.pre('save', async function (next) {
       next(uploadResult.error);
     }
 
-    this.receiptURL = uploadResult.url;
+    this.receiptURL = uploadResult.secure_url;
     next();
 
     // TODO: Upload PDF to cloudinary
