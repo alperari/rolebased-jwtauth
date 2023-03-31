@@ -171,11 +171,11 @@ router.post('/', requireAuth, async (req, res) => {
 
 // Update comment
 // Only authenticated users can update THEIR comments
-router.patch('/:id', requireAuth, async (req, res) => {
+router.patch('/:productID', requireAuth, async (req, res) => {
   const { user } = req;
 
   const { description } = req.body;
-  const { id } = req.params;
+  const { productID } = req.params;
 
   if (!description || !id) {
     console.error('Description and ID are required');
@@ -207,9 +207,9 @@ router.patch('/:id', requireAuth, async (req, res) => {
 
 // Delete comment
 // Only authenticated users can delete THEIR comments
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:productID', requireAuth, async (req, res) => {
   const { user } = req;
-  const { id } = req.params;
+  const { productID } = req.params;
 
   if (!id) {
     console.error('ID is required');
@@ -240,28 +240,33 @@ router.delete('/:id', requireAuth, async (req, res) => {
 
 // Approve/Reject (a.k.a. update) comment
 // Only product managers can approve/reject comments
-router.patch('/update/:id', requireAuth, requirePManager, async (req, res) => {
-  const { id } = req.params;
-  const { newStatus } = req.body;
+router.patch(
+  '/update/:productID',
+  requireAuth,
+  requirePManager,
+  async (req, res) => {
+    const { productID } = req.params;
+    const { newStatus } = req.body;
 
-  if (!id || !newStatus) {
-    console.error('ID and new status are required');
-    return res.status(400).json({ error: 'ID and new status are required' });
+    if (!id || !newStatus) {
+      console.error('ID and new status are required');
+      return res.status(400).json({ error: 'ID and new status are required' });
+    }
+
+    try {
+      // Update comment whose id is id and userId is userID
+      const updatedComment = await Comment.findOneAndUpdate(
+        { _id: id },
+        { status: newStatus },
+        { new: true }
+      );
+
+      res.status(200).json({ updatedComment });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error });
+    }
   }
-
-  try {
-    // Update comment whose id is id and userId is userID
-    const updatedComment = await Comment.findOneAndUpdate(
-      { _id: id },
-      { status: newStatus },
-      { new: true }
-    );
-
-    res.status(200).json({ updatedComment });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error });
-  }
-});
+);
 
 module.exports = router;
