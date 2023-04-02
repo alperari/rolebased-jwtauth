@@ -77,6 +77,25 @@ userSchema.pre('findOneAndUpdate', async function (next) {
   next();
 });
 
+// When a user is deleted, remove everything related to him/her
+userSchema.pre('remove', function (next) {
+  const user = this;
+
+  // remove all wishlists that contain the user id
+  mongoose.model('Wishlist').deleteMany({ userID: user._id }, next);
+
+  // remove all carts that contain the user id
+  mongoose.model('Cart').deleteMany({ userID: user._id }, next);
+
+  // remove all comments that contain the user id
+  mongoose.model('Comment').deleteMany({ userID: user._id }, next);
+
+  // remove all ratings that contain the user id
+  mongoose.model('Rating').deleteMany({ userID: user._id }, next);
+
+  next();
+});
+
 // Static methods
 userSchema.statics.login = async function (email, password) {
   const user = await this.findOne({ email });

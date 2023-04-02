@@ -72,6 +72,8 @@ productSchema.pre('remove', function (next) {
   mongoose
     .model('Refund')
     .deleteMany({ productID: product._id, status: 'pending' }, next);
+
+  next();
 });
 
 const Product = mongoose.model('Product', productSchema);

@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const User = require('../models/user-model');
-const { requireAuth } = require('../middlewares/auth');
+const { requireAuth, requireAdmin } = require('../middlewares/auth');
 const bcrypt = require('bcrypt');
 
 const router = Router();
@@ -58,6 +58,26 @@ router.patch('/', requireAuth, async (req, res) => {
     });
 
     return res.json({ updatedUser });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ error });
+  }
+});
+
+// Delete any user
+// Only admins can delete users
+router.delete('/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    console.error('ID is required');
+    return res.status(400).json({ error: 'ID is required' });
+  }
+
+  try {
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    return res.json({ deletedUser });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error });
