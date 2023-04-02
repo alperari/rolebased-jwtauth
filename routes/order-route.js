@@ -2,7 +2,7 @@ const express = require('express');
 const Order = require('../models/order-model');
 const Product = require('../models/product-model');
 const Cart = require('../models/cart-model');
-const { requireAuth } = require('../middlewares/auth');
+const { requireAuth, requireSManager } = require('../middlewares/auth');
 
 const router = express.Router();
 
@@ -108,7 +108,7 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-// Cancel processing order
+// Cancel my processing order
 // Only authenticated users
 router.patch('/cancel', requireAuth, async (req, res) => {
   const { user } = req;
@@ -219,6 +219,49 @@ router.patch('/refund', requireAuth, async (req, res) => {
     });
 
     res.status(200).json({ newRefund });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
+
+// Update status of an order
+// Only sales maangers
+router.patch('/update', requireAuth, requireSManager, async (req, res) => {
+  const { user } = req;
+  const { orderID, newStatus } = req.body;
+
+  if (!orderID || !newStatus) {
+    return res.status(400).json({ error: 'Invalid inputs' });
+  }
+
+  try {
+    // Check if the order with OrderID exists
+    const order = await Order.findById(orderID);
+
+    if (!order) {
+      return res.status(400).json({ error: 'Order does not exist' });
+    }
+
+    // Check if newStatus is valid
+    const validStatuses = [
+      'processing',
+      'in-transit',
+      'delivered',
+      'cancelled',
+    ];
+    if (!validStatuses.includes(newStatus)) {
+      return res.status(400).json({ error: 'Invalid new status' });
+    }
+
+    // Update order status
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: orderID },
+      { status: newStatus },
+      { new: true }
+    );
+
+    res.status(200).json({ updatedOrder });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });
