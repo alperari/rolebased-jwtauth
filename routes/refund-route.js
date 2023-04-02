@@ -188,7 +188,7 @@ router.patch('/reject', requireAuth, requireSManager, async (req, res) => {
 });
 
 // Delete refund
-// Only authenticated users can delete ("pending") refunds
+// Only authenticated users can delete their ("pending") refunds
 router.delete('/delete', requireAuth, async (req, res) => {
   const { user } = req;
   const { refundID } = req.body;

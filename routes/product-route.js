@@ -128,9 +128,8 @@ router.post('/', requireAuth, requirePManager, async (req, res) => {
 
 // Update product price & discount
 // Only sales manager can update product price & discount
-router.patch('/update/:id', requireAuth, requireSManager, async (req, res) => {
-  const { id } = req.params;
-  const { price, discount } = req.body;
+router.patch('/update/', requireAuth, requireSManager, async (req, res) => {
+  const { price, discount, id } = req.body;
 
   if (price == null || discount == null) {
     return res.status(400).json({ error: 'Price or discount is missing' });
@@ -162,6 +161,26 @@ router.patch('/update/:id', requireAuth, requireSManager, async (req, res) => {
     }
 
     res.status(200).json({ updatedProduct });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error });
+  }
+});
+
+// Delete a product
+// Only product manager can delete a product
+router.delete('/:id', requireAuth, requirePManager, async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Product ID is required' });
+  }
+
+  try {
+    // Delete product
+    const deletedProduct = await Product.findByIdAndDelete(id);
+
+    res.status(200).json({ deletedProduct });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error });
