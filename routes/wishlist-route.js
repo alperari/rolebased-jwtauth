@@ -19,7 +19,7 @@ router.get('/my', requireAuth, async (req, res) => {
     return res.json({ wishlist });
   } catch (error) {
     console.error(error);
-    return res.status(400).json({ error });
+    return res.status(400).json({ error: error.message });
   }
 });
 
@@ -55,7 +55,7 @@ router.patch('/add/:productID', requireAuth, async (req, res) => {
     return res.json({ wishlist });
   } catch (error) {
     console.error(error);
-    return res.status(400).json({ error });
+    return res.status(400).json({ error: error.message });
   }
 });
 
@@ -91,7 +91,7 @@ router.patch('/remove/:productID', requireAuth, async (req, res) => {
     return res.json({ wishlist });
   } catch (error) {
     console.error(error);
-    return res.status(400).json({ error });
+    return res.status(400).json({ error: error.message });
   }
 });
 

@@ -35,7 +35,7 @@ router.get('/my/:productID', requireAuth, async (req, res) => {
     res.status(200).json({ myComments });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -58,7 +58,7 @@ router.get(
       res.status(200).json({ comments });
     } catch (error) {
       console.error(error);
-      res.status(400).json({ error });
+      res.status(400).json({ error: error.message });
     }
   }
 );
@@ -79,7 +79,7 @@ router.get('/approved/:productID', async (req, res) => {
     res.status(200).json({ comments });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -103,7 +103,7 @@ router.get(
       res.status(200).json({ comments });
     } catch (error) {
       console.error(error);
-      res.status(400).json({ error });
+      res.status(400).json({ error: error.message });
     }
   }
 );
@@ -128,7 +128,7 @@ router.get(
       res.status(200).json({ comments });
     } catch (error) {
       console.error(error);
-      res.status(400).json({ error });
+      res.status(400).json({ error: error.message });
     }
   }
 );
@@ -165,7 +165,7 @@ router.post('/', requireAuth, async (req, res) => {
   try {
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -201,7 +201,7 @@ router.patch('/:productID', requireAuth, async (req, res) => {
     res.status(200).json({ updatedComment });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -234,7 +234,7 @@ router.delete('/:productID', requireAuth, async (req, res) => {
     res.status(200).json({ deletedComment });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -264,7 +264,7 @@ router.patch(
       res.status(200).json({ updatedComment });
     } catch (error) {
       console.error(error);
-      res.status(400).json({ error });
+      res.status(400).json({ error: error.message });
     }
   }
 );

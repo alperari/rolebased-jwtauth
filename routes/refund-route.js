@@ -23,7 +23,7 @@ router.get('/all', requireAuth, requireSManager, async (req, res) => {
     res.status(200).json({ refunds });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -38,7 +38,7 @@ router.get('/pending', requireAuth, requireSManager, async (req, res) => {
     res.status(200).json({ refunds });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -53,7 +53,7 @@ router.get('/approved', requireAuth, requireSManager, async (req, res) => {
     res.status(200).json({ refunds });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -68,7 +68,7 @@ router.get('/rejected', requireAuth, requireSManager, async (req, res) => {
     res.status(200).json({ refunds });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -83,7 +83,7 @@ router.get('/my', requireAuth, async (req, res) => {
     res.status(200).json({ refunds });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -142,7 +142,7 @@ router.patch('/approve', requireAuth, requireSManager, async (req, res) => {
     res.status(200).json({ updatedRefund });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -183,7 +183,7 @@ router.patch('/reject', requireAuth, requireSManager, async (req, res) => {
     return res.status(200).json({ updatedRefund });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -227,7 +227,7 @@ router.delete('/delete', requireAuth, async (req, res) => {
     return res.status(200).json({ deletedRefund });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 

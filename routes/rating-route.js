@@ -31,7 +31,7 @@ router.get('/all/:productID', async (req, res) => {
     res.status(200).json({ ratings });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -66,7 +66,7 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(200).json({ newRating });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -99,7 +99,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     res.status(200).json({ deletedRating });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 

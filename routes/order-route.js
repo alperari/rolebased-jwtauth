@@ -18,7 +18,7 @@ router.get('/my', requireAuth, async (req, res) => {
     res.status(200).json({ orders });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -104,7 +104,7 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(200).json({ order });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -151,7 +151,7 @@ router.patch('/cancel', requireAuth, async (req, res) => {
     res.status(200).json({ order });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -221,7 +221,7 @@ router.patch('/refund', requireAuth, async (req, res) => {
     res.status(200).json({ newRefund });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -264,7 +264,7 @@ router.patch('/update', requireAuth, requireSManager, async (req, res) => {
     res.status(200).json({ updatedOrder });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 

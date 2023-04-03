@@ -38,7 +38,7 @@ router.get('/:id', async (req, res) => {
     res.status(200).json({ product });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -50,7 +50,7 @@ router.get('/', async (req, res) => {
     res.status(200).json({ products });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -70,7 +70,7 @@ router.get('/category/:category', async (req, res) => {
     res.status(200).json({ products });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -82,7 +82,7 @@ router.get('/categories', async (req, res) => {
     res.status(200).json({ categories });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -122,7 +122,7 @@ router.post('/', requireAuth, requirePManager, async (req, res) => {
     res.status(201).json({ product });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -163,7 +163,7 @@ router.patch('/update/', requireAuth, requireSManager, async (req, res) => {
     res.status(200).json({ updatedProduct });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -183,7 +183,7 @@ router.delete('/:id', requireAuth, requirePManager, async (req, res) => {
     res.status(200).json({ deletedProduct });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 

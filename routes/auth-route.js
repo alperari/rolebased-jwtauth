@@ -54,7 +54,7 @@ router.post('/register', async (req, res) => {
     res.status(201).json({ user, token });
   } catch (error) {
     console.error(error);
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
@@ -74,12 +74,12 @@ router.post('/login', async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    res.status(201).json({ payload: user, token: token });
+    res.status(201).json({ user: user, token: token });
   } catch (error) {
     console.log(error);
     // If .login static method fails to match password, it will throw an error.
     // Otherwise, it will return user
-    res.status(400).json({ error });
+    res.status(400).json({ error: error.message });
   }
 });
 
