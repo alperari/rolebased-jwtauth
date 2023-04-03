@@ -3,6 +3,7 @@ const User = require('../models/user-model');
 const Wishlist = require('../models/wishlist-model');
 const Cart = require('../models/cart-model');
 const jwt = require('jsonwebtoken');
+const { requireAuth } = require('../middlewares/auth');
 
 const router = Router();
 
@@ -18,6 +19,13 @@ const generateToken = (user) => {
 };
 
 // Endpoints--------------------------------------------------------------
+
+router.get('/test-cookie', (req, res) => {
+  // Make sure all requests are sent with credentials (withCredentials: true)
+  const token = req.cookies.token;
+  console.log({ token });
+  res.json({ token });
+});
 
 router.post('/register', async (req, res) => {
   const { name, username, email, password, address, role } = req.body;
@@ -47,7 +55,7 @@ router.post('/register', async (req, res) => {
     const token = generateToken(user);
 
     res.cookie('token', token, {
-      // httpOnly: true,  //if true: frontend cannot read token from cookies
+      httpOnly: true, //if true: frontend cannot read token from cookies
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -70,8 +78,8 @@ router.post('/login', async (req, res) => {
     const token = generateToken(user);
 
     res.cookie('token', token, {
-      // httpOnly: true,  //if true: frontend cannot read token from cookies
-      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true, //if true: frontend cannot read token from cookies
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
     res.status(201).json({ user: user, token: token });

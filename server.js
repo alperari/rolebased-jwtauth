@@ -7,6 +7,7 @@ const cloudinary = require('cloudinary').v2;
 const fileupload = require('express-fileupload');
 const listEndpoints = require('express-list-endpoints');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -17,9 +18,13 @@ const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
+app.use(cookieParser());
+
 app.use(
   cors({
-    origin: 'http://localhost:5000',
+    origin: ['http://localhost:5000', 'http://127.0.0.1'],
+    credentials: true,
+    exposedHeaders: ['set-cookie'],
   })
 );
 

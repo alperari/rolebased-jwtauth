@@ -5,11 +5,12 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // Middleware to check if user is authenticated
 requireAuth = (req, res, next) => {
   // TODO: USE COOKIES INSTEAD OF HEADERS
-  //   const token = req.cookies.token;
-  const token =
-    req.headers.authorization &&
-    req.headers.authorization.split(' ')[0] == 'Bearer' &&
-    req.headers.authorization.split(' ')[1];
+  const token = req.cookies.token;
+
+  // const token =
+  //   req.headers.authorization &&
+  //   req.headers.authorization.split(' ')[0] == 'Bearer' &&
+  //   req.headers.authorization.split(' ')[1];
 
   if (!token) {
     return res.sendStatus(401);
