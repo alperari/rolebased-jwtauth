@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 const fileupload = require('express-fileupload');
 const listEndpoints = require('express-list-endpoints');
+const cors = require('cors');
 
 const app = express();
 
@@ -15,6 +16,12 @@ const MONGO_URI = process.env.MONGO_URI;
 const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+
+app.use(
+  cors({
+    origin: 'http://localhost:5000',
+  })
+);
 
 app.use(fileupload({ useTempFiles: true }));
 
