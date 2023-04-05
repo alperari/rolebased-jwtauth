@@ -94,9 +94,7 @@ router.post('/', requireAuth, requirePManager, async (req, res) => {
     description,
     category,
     // image,
-    model,
     distributor,
-    warrantyStatus,
   } = req.body;
 
   const image = req.files.image;
@@ -114,9 +112,7 @@ router.post('/', requireAuth, requirePManager, async (req, res) => {
       category,
       imageURL,
       quantity: 0, // Product quantity will be set by product manager later
-      model,
       distributor,
-      warrantyStatus,
     });
 
     res.status(201).json({ product });

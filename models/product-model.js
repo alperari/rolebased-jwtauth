@@ -30,16 +30,9 @@ const productSchema = new Schema({
     type: Number,
     required: true,
   },
-  model: {
-    type: String,
-    required: true,
-  },
   distributor: {
     type: String,
     required: true,
-  },
-  warrantyStatus: {
-    type: String,
   },
 });
 
