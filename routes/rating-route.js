@@ -72,7 +72,7 @@ router.post('/', requireAuth, async (req, res) => {
 
 // Delete rating
 // Only authenticated users can delete their ratings
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/id/:id', requireAuth, async (req, res) => {
   const { user } = req;
   const { id } = req.params;
 

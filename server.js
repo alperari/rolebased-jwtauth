@@ -23,7 +23,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: ['http://localhost:5000', 'http://127.0.0.1'],
-    credentials: true,
+    credentials: true, // enable receive cookies
     exposedHeaders: ['set-cookie'],
   })
 );

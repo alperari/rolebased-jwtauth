@@ -26,7 +26,7 @@ const router = Router();
 
 // Get a single product
 // Everyone
-router.get('/:id', async (req, res) => {
+router.get('/id/:id', async (req, res) => {
   const { id } = req.params;
 
   if (!id) {
@@ -78,7 +78,7 @@ router.get('/category/:category', async (req, res) => {
 // Everyone
 router.get('/categories', async (req, res) => {
   try {
-    const categories = await Product.distinct('category');
+    const categories = await Product.collection.distinct('category');
     res.status(200).json({ categories });
   } catch (error) {
     console.error(error);
@@ -169,7 +169,7 @@ router.patch('/update/', requireAuth, requireSManager, async (req, res) => {
 
 // Delete a product
 // Only product manager can delete a product
-router.delete('/:id', requireAuth, requirePManager, async (req, res) => {
+router.delete('/id/:id', requireAuth, requirePManager, async (req, res) => {
   const { id } = req.params;
 
   if (!id) {

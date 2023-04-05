@@ -16,7 +16,7 @@ router.get('/me', requireAuth, async (req, res) => {
 
 // Get other user
 // Only authenticated users can get other users
-router.get('/:id', requireAuth, async (req, res) => {
+router.get('/id/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
 
   if (!id) {
@@ -66,7 +66,7 @@ router.patch('/', requireAuth, async (req, res) => {
 
 // Delete any user
 // Only admins can delete users
-router.delete('/:id', requireAdmin, async (req, res) => {
+router.delete('/id/:id', requireAdmin, async (req, res) => {
   const { id } = req.params;
 
   if (!id) {
