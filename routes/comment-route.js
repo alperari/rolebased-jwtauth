@@ -138,7 +138,7 @@ router.get(
 router.post('/', requireAuth, async (req, res) => {
   const { user } = req;
 
-  const { productID, description } = req.body;
+  const { productID, title, description } = req.body;
 
   if (!productID || !description) {
     console.error('Product ID and description are required');

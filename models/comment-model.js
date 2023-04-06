@@ -16,6 +16,10 @@ const commentSchema = new Schema({
     enum: ['approved', 'pending', 'rejected'],
     default: 'pending',
   },
+  title: {
+    type: String,
+    required: true,
+  },
   description: {
     type: String,
     required: true,
