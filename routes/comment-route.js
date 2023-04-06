@@ -40,11 +40,11 @@ router.get('/my/:productID', requireAuth, async (req, res) => {
 });
 
 // Get all comments for a product
-// Only product owners can get all comments
+// TODO: Fix that: Only product owners can get all comments
 router.get(
   '/all/:productID',
-  requireAuth,
-  requirePManager,
+  // requireAuth,
+  // requirePManager,
   async (req, res) => {
     const { productID } = req.params;
 
@@ -159,6 +159,7 @@ router.post('/', requireAuth, async (req, res) => {
   const newComment = await Comment.create({
     userID: user._id,
     productID,
+    title,
     description,
   });
   res.status(200).json({ newComment });

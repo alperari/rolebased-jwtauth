@@ -34,6 +34,27 @@ router.get('/id/:id', requireAuth, async (req, res) => {
   }
 });
 
+router.post('/multiple', async (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids) {
+    console.error('IDs are required');
+    return res.status(400).json({ error: 'IDs are required' });
+  }
+
+  try {
+    const users = await User.find({ _id: { $in: ids } }).select({
+      _id: 1,
+      name: 1,
+    });
+
+    return res.json({ users });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ error: error.message });
+  }
+});
+
 // Update my user
 // Only authenticated users can update their user
 router.patch('/', requireAuth, async (req, res) => {
