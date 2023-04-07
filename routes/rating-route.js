@@ -47,15 +47,29 @@ router.post('/', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Product ID and stars are required' });
   }
 
-  // Check if product with productID exists
-  const product = await Product.findById(productID);
-
-  if (!product) {
-    console.error('Product does not exist');
-    return res.status(400).json({ error: 'Product does not exist' });
-  }
-
   try {
+    // Check if product with productID exists
+    const product = await Product.findById(productID);
+
+    if (!product) {
+      console.error('Product does not exist');
+      return res.status(400).json({ error: 'Product does not exist' });
+    }
+
+    // Check if user has already rated the product
+    const rating = await Rating.findOne({ userID: user._id, productID });
+
+    if (rating) {
+      // Update already existing rating
+      const updatedRating = await Rating.findOneAndUpdate(
+        { userID: user._id, productID },
+        { stars },
+        { new: true }
+      );
+
+      return res.status(200).json({ updatedRating });
+    }
+
     // Create new rating
     const newRating = await Rating.create({
       userID: user._id,

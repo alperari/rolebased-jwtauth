@@ -54,6 +54,26 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get all products with their comments
+// Everyone
+router.get('/with-ratings', async (req, res) => {
+  try {
+    let products = await Product.find();
+
+    // Get ratings for each product
+    for (let product of products) {
+      const ratings = await Rating.find({ productID: product._id });
+
+      product._doc.ratings = ratings;
+    }
+
+    res.status(200).json({ products });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Get products under a category
 // Everyone
 router.get('/category/:category', async (req, res) => {
