@@ -42,7 +42,7 @@ router.post('/', requireAuth, async (req, res) => {
 
   const { productID, stars } = req.body;
 
-  if (!productID || !stars) {
+  if (!productID || stars === null) {
     console.error('Product ID and stars are required');
     return res.status(400).json({ error: 'Product ID and stars are required' });
   }
@@ -56,11 +56,21 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Product does not exist' });
     }
 
+    if (stars === 0) {
+      // Delete rating
+      const deletedRating = await Rating.findOneAndDelete({
+        productID,
+        userID: user._id,
+      });
+      return res.status(200).json({ deletedRating });
+    }
+
     // Check if user has already rated the product
     const rating = await Rating.findOne({ userID: user._id, productID });
 
     if (rating) {
       // Update already existing rating
+
       const updatedRating = await Rating.findOneAndUpdate(
         { userID: user._id, productID },
         { stars },
