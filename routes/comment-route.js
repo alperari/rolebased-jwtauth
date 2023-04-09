@@ -208,17 +208,17 @@ router.patch('/:productID', requireAuth, async (req, res) => {
 
 // Delete comment
 // Only authenticated users can delete THEIR comments
-router.delete('/:productID', requireAuth, async (req, res) => {
+router.delete('/id/:commentID', requireAuth, async (req, res) => {
   const { user } = req;
-  const { productID } = req.params;
+  const { commentID } = req.params;
 
-  if (!id) {
-    console.error('ID is required');
-    return res.status(400).json({ error: 'ID is required' });
+  if (!commentID) {
+    console.error('commentID is required');
+    return res.status(400).json({ error: 'commentID is required' });
   }
 
   // Check if comment with id exists
-  const comment = await Comment.findById(id);
+  const comment = await Comment.findById(commentID);
 
   if (!comment) {
     console.error('Comment does not exist');
@@ -226,9 +226,9 @@ router.delete('/:productID', requireAuth, async (req, res) => {
   }
 
   try {
-    // Delete comment whose id is id and userId is userID
+    // Delete comment whose id is commentID and userId is userID
     const deletedComment = await Comment.findOneAndDelete({
-      _id: id,
+      _id: commentID,
       userID: user._id,
     });
 

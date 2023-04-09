@@ -109,15 +109,10 @@ router.get('/categories', async (req, res) => {
 // Create product
 // Only product manager can create product
 router.post('/', requireAuth, requirePManager, async (req, res) => {
-  const {
-    name,
-    description,
-    category,
-    // image,
-    distributor,
-  } = req.body;
+  const { name, description, category, distributor } = req.body;
 
   const image = req.files.image;
+
   try {
     // Upload image to cloudinary and get secure URL
 
@@ -126,12 +121,9 @@ router.post('/', requireAuth, requirePManager, async (req, res) => {
     // Create product
     const product = await Product.create({
       name,
-      price: -1, // Product price will be set by sales manager later
-      discount: 0, // Product discount will be set by sales manager later
       description,
       category,
       imageURL,
-      quantity: 0, // Product quantity will be set by product manager later
       distributor,
     });
 
@@ -145,29 +137,36 @@ router.post('/', requireAuth, requirePManager, async (req, res) => {
 // Update product price & discount
 // Only sales manager can update product price & discount
 router.patch(
-  '/update-price-discount/',
+  '/update-price-discount',
   requireAuth,
   requireSManager,
   async (req, res) => {
-    const { price, discount, id } = req.body;
+    const { price, discount, productID } = req.body;
 
-    if (price == null || discount == null) {
+    if (!productID) {
+      console.error('Product ID is missing');
+      return res.status(400).json({ error: 'Product ID is missing' });
+    }
+
+    if (price == null && discount == null) {
+      console.error('Price or discount is missing');
       return res.status(400).json({ error: 'Price or discount is missing' });
     }
 
-    if (price < 0 || discount < 0) {
+    if (price < 0 || discount < 0 || discount > 100) {
+      console.error('Price or discount is invalid');
       return res.status(400).json({ error: 'Price or discount is invalid' });
     }
 
     try {
-      const filter = { _id: id };
+      const filter = { _id: productID };
       const update = {};
 
-      if (price > 0) {
+      if (price !== null && price >= 0) {
         update.price = price;
       }
 
-      if (discount > 0) {
+      if (discount !== null && discount >= 0) {
         update.discount = discount;
       }
 
@@ -241,6 +240,7 @@ router.delete('/id/:id', requireAuth, requirePManager, async (req, res) => {
 // Functions ---------------------------------------------------------------
 
 const notifyUsers = async (product) => {
+  console.log('Discounted item! Notifying users...');
   try {
     // Get all wishlists that have this product
     const wishlists = await Wishlist.find({
