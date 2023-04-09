@@ -144,44 +144,79 @@ router.post('/', requireAuth, requirePManager, async (req, res) => {
 
 // Update product price & discount
 // Only sales manager can update product price & discount
-router.patch('/update/', requireAuth, requireSManager, async (req, res) => {
-  const { price, discount, id } = req.body;
+router.patch(
+  '/update-price-discount/',
+  requireAuth,
+  requireSManager,
+  async (req, res) => {
+    const { price, discount, id } = req.body;
 
-  if (price == null || discount == null) {
-    return res.status(400).json({ error: 'Price or discount is missing' });
-  }
-
-  if (price < 0 || discount < 0) {
-    return res.status(400).json({ error: 'Price or discount is invalid' });
-  }
-
-  try {
-    const filter = { _id: id };
-    const update = {};
-
-    if (price > 0) {
-      update.price = price;
+    if (price == null || discount == null) {
+      return res.status(400).json({ error: 'Price or discount is missing' });
     }
 
-    if (discount > 0) {
-      update.discount = discount;
+    if (price < 0 || discount < 0) {
+      return res.status(400).json({ error: 'Price or discount is invalid' });
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(filter, update, {
-      new: true, // new:true will return updated document
-    });
+    try {
+      const filter = { _id: id };
+      const update = {};
 
-    if (discount > 0) {
-      // Notify users who have this product in their wishlist
-      await notifyUsers(updatedProduct);
+      if (price > 0) {
+        update.price = price;
+      }
+
+      if (discount > 0) {
+        update.discount = discount;
+      }
+
+      const updatedProduct = await Product.findByIdAndUpdate(filter, update, {
+        new: true, // new:true will return updated document
+      });
+
+      if (discount > 0) {
+        // Notify users who have this product in their wishlist
+        await notifyUsers(updatedProduct);
+      }
+
+      res.status(200).json({ updatedProduct });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error: error.message });
     }
-
-    res.status(200).json({ updatedProduct });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: error.message });
   }
-});
+);
+
+router.patch(
+  '/update-quantity',
+  requireAuth,
+  requirePManager,
+  async (req, res) => {
+    const { quantity, productID } = req.body;
+
+    if (quantity == null) {
+      return res.status(400).json({ error: 'Quantity is missing' });
+    }
+
+    if (quantity < 0) {
+      return res.status(400).json({ error: 'Quantity is invalid' });
+    }
+
+    try {
+      const updatedProduct = await Product.findOneAndUpdate(
+        { _id: productID },
+        { quantity },
+        { new: true }
+      );
+
+      res.status(200).json({ updatedProduct });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
 
 // Delete a product
 // Only product manager can delete a product
