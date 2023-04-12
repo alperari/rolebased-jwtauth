@@ -270,22 +270,22 @@ router.delete('/id/:commentID', requireAuth, async (req, res) => {
 // Approve/Reject (a.k.a. update) comment
 // Only product managers can approve/reject comments
 router.patch(
-  '/update/:productID',
+  '/update-status/id/:commentID',
   requireAuth,
   requirePManager,
   async (req, res) => {
-    const { productID } = req.params;
+    const { commentID } = req.params;
     const { newStatus } = req.body;
 
-    if (!id || !newStatus) {
+    if (!commentID || !newStatus) {
       console.error('ID and new status are required');
       return res.status(400).json({ error: 'ID and new status are required' });
     }
 
     try {
-      // Update comment whose id is id and userId is userID
+      // Update comment whose id is commentID
       const updatedComment = await Comment.findOneAndUpdate(
-        { _id: id },
+        { _id: commentID },
         { status: newStatus },
         { new: true }
       );
