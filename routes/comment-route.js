@@ -3,6 +3,7 @@
 const { Router } = require('express');
 const Comment = require('../models/comment-model');
 const Product = require('../models/product-model');
+const User = require('../models/user-model');
 
 const {
   requireAuth,
@@ -40,7 +41,7 @@ router.get('/my/:productID', requireAuth, async (req, res) => {
 });
 
 // Get all comments for a product
-// TODO: Fix that: Only product owners can get all comments
+// TODO: Fix that: Only product managers can get all comments
 router.get(
   '/all/:productID',
   // requireAuth,
@@ -62,6 +63,33 @@ router.get(
     }
   }
 );
+
+// Get all comments, with user info and product info for each comment
+// Only product managers can get all comments
+router.get('/all', requireAuth, requirePManager, async (req, res) => {
+  try {
+    // Get all comments
+    const comments = await Comment.find();
+
+    // Get user info for each comment
+    for (let comment of comments) {
+      // Get user info
+      const user = await User.findById(comment.userID);
+
+      // Get product info
+      const product = await Product.findById(comment.productID);
+
+      // Add user info and product info to comment
+      comment._doc.user = user;
+      comment._doc.product = product;
+    }
+
+    res.status(200).json({ comments });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: error.message });
+  }
+});
 
 // Get all approved comments for a product
 // Everyone
