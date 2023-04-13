@@ -15,6 +15,7 @@ const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
 
 // Middlewares
 const {
+  checkAuth,
   requireAuth,
   requireSManager,
   requirePManager,
@@ -26,7 +27,8 @@ const router = Router();
 
 // Get a single product
 // Everyone
-router.get('/id/:id', async (req, res) => {
+router.get('/id/:id', checkAuth, async (req, res) => {
+  const { user } = req;
   const { id } = req.params;
 
   if (!id) {
@@ -35,6 +37,19 @@ router.get('/id/:id', async (req, res) => {
 
   try {
     const product = await Product.findById(id);
+
+    let inMyWishlist = false;
+
+    if (user) {
+      const userWishlist = await Wishlist.findOne({ userID: user._id });
+
+      inMyWishlist = userWishlist.productIDs.find((productID) => {
+        return productID.toString() === product._id.toString();
+      });
+    }
+
+    product._doc.inMyWishlist = inMyWishlist;
+
     res.status(200).json({ product });
   } catch (error) {
     console.error(error);

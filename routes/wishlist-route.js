@@ -25,9 +25,9 @@ router.get('/my', requireAuth, async (req, res) => {
 
 // Add product to wishlist
 // Only authenticated users
-router.patch('/add/:productID', requireAuth, async (req, res) => {
+router.patch('/add', requireAuth, async (req, res) => {
   const { user } = req;
-  const { productID } = req.params;
+  const { productID } = req.body;
 
   if (!productID) {
     console.error('Product ID is required');
@@ -61,9 +61,9 @@ router.patch('/add/:productID', requireAuth, async (req, res) => {
 
 // Remove product from wishlist
 // Only authenticated users
-router.patch('/remove/:productID', requireAuth, async (req, res) => {
+router.patch('/remove', requireAuth, async (req, res) => {
   const { user } = req;
-  const { productID } = req.params;
+  const { productID } = req.body;
 
   if (!productID) {
     console.error('Product ID is required');

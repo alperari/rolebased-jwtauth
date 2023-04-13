@@ -15,9 +15,9 @@ const router = Router();
 
 // Endpoints--------------------------------------------------------------
 
-// Gett my comments for a product
+// Get my comments for a product
 // Only authenticated users can get their comments
-router.get('/my/:productID', requireAuth, async (req, res) => {
+router.get('/my-comments/:productID', requireAuth, async (req, res) => {
   const { user } = req;
 
   const { productID } = req.params;
@@ -40,12 +40,37 @@ router.get('/my/:productID', requireAuth, async (req, res) => {
   }
 });
 
+// Get all of my comments, with product info for each comment
+router.get('/my-comments', requireAuth, async (req, res) => {
+  const { user } = req;
+
+  try {
+    // Get all of my comments
+    const myComments = await Comment.find({ userID: user._id });
+
+    // Get product info for each comment
+    for (let comment of myComments) {
+      // Get product info
+      const product = await Product.findById(comment.productID);
+
+      // Add product info to comment
+      comment._doc.product = product;
+    }
+
+    res.status(200).json({ myComments });
+  } catch (error) {
+    console.error(error);
+
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Get all comments for a product
 // TODO: Fix that: Only product managers can get all comments
 router.get(
   '/all/:productID',
-  // requireAuth,
-  // requirePManager,
+  requireAuth,
+  requirePManager,
   async (req, res) => {
     const { productID } = req.params;
 

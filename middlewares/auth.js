@@ -2,6 +2,20 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user-model');
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Middleware to check if user is authenticated, but not required
+checkAuth = (req, res, next) => {
+  const token = req.cookies.token;
+
+  if (token) {
+    jwt.verify(token, JWT_SECRET, function (err, user) {
+      if (err) return res.sendStatus(401);
+
+      req.user = user;
+    });
+  }
+  next();
+};
+
 // Middleware to check if user is authenticated
 requireAuth = (req, res, next) => {
   //  USE COOKIES INSTEAD OF HEADERS
@@ -70,6 +84,7 @@ requireAdmin = (req, res, next) => {
 };
 
 module.exports = {
+  checkAuth,
   requireAuth,
   requirePManager,
   requireSManager,
