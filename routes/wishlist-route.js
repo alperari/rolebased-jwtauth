@@ -14,8 +14,20 @@ router.get('/my', requireAuth, async (req, res) => {
   const { user } = req;
 
   try {
-    const wishlist = await Wishlist.find({ userID: user._id });
+    // Fetch productIDs from wishlist
+    let wishlist = await Wishlist.findOne({ userID: user._id });
 
+    // Fetch products details
+    const products = await Product.find({
+      _id: { $in: wishlist._doc.productIDs },
+    });
+
+    delete wishlist._doc.productIDs;
+    delete wishlist._doc.userID;
+
+    wishlist._doc.products = products;
+
+    console.log(wishlist);
     return res.json({ wishlist });
   } catch (error) {
     console.error(error);
