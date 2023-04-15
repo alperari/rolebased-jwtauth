@@ -27,7 +27,6 @@ router.get('/my', requireAuth, async (req, res) => {
 
     wishlist._doc.products = products;
 
-    console.log(wishlist);
     return res.json({ wishlist });
   } catch (error) {
     console.error(error);

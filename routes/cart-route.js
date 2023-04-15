@@ -53,7 +53,7 @@ router.get('/my', requireAuth, async (req, res) => {
   }
 });
 
-// Add product to cart
+// Add product to cart (by quantity)
 // Only authenticated users
 router.post('/add', requireAuth, async (req, res) => {
   const { user } = req;
@@ -107,30 +107,22 @@ router.post('/add', requireAuth, async (req, res) => {
       { new: true }
     );
 
-    // // Update product quantity
-    // const reducedQuantity = product.quantity - quantity;
-    // const updatedProduct = await Product.findOneAndUpdate(
-    //   { _id: productID },
-    //   { quantity: reducedQuantity },
-    //   { new: true }
-    // );
-
-    return res.status(200).json({ updatedCart });
+    return res.status(200).json({ product });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: error.message });
   }
 });
 
-// Remove product from cart
+// Remove product from cart (by quantity)
 // Only authenticated users
 router.delete('/remove', requireAuth, async (req, res) => {
   const { user } = req;
-  const { productID } = req.body;
+  const { productID, quantity } = req.body;
 
-  if (!productID) {
-    console.error('Product ID is required');
-    return res.status(400).json({ error: 'Product ID is required' });
+  if (!productID || !quantity || quantity <= 0) {
+    console.error('Invalid productID or quantity');
+    return res.status(400).json({ error: 'Invalid productID or quantity' });
   }
 
   try {
@@ -156,8 +148,39 @@ router.delete('/remove', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Product is not in cart' });
     }
 
-    // Remove product from cart
-    cart.products.splice(productIndex, 1);
+    // Reduce quantity from cart
+    cart.products[productIndex].quantity -= quantity;
+
+    // If quantity is 0, remove product from cart
+    if (cart.products[productIndex].quantity <= 0) {
+      cart.products.splice(productIndex, 1);
+    }
+
+    // Update my cart
+    const updatedCart = await Cart.findOneAndUpdate(
+      { userID: user._id },
+      { products: cart.products },
+      { new: true }
+    );
+
+    return res.status(200).json({ updatedCart });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ error: error.message });
+  }
+});
+
+// Clear cart
+// Only authenticated users
+router.delete('/clear', requireAuth, async (req, res) => {
+  const { user } = req;
+
+  try {
+    // Get cart
+    const cart = await Cart.findOne({ userID: user._id });
+
+    // Clear cart
+    cart.products = [];
 
     // Update my cart
     const updatedCart = await Cart.findOneAndUpdate(
