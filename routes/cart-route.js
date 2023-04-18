@@ -45,7 +45,6 @@ router.get('/my', requireAuth, async (req, res) => {
 
       cart.products[index] = { ...element, ...productDetails_doc };
     });
-    console.log(cart);
 
     res.status(200).json({ cart });
   } catch (error) {
@@ -67,25 +66,60 @@ router.post('/sync', requireAuth, async (req, res) => {
     // Get cart
     const cart = await Cart.findOne({ userID: user._id });
 
-    const newCartProdcuts = [];
+    const newCartProducts = cart.products;
 
     localStorageCart.products.forEach((element) => {
-      if (!cart.products.find((item) => item.productID === element._id)) {
-        newCartProdcuts.push({
+      const foundItem = newCartProducts.find(
+        (item) => item.productID === element._id
+      );
+
+      if (!foundItem) {
+        newCartProducts.push({
           productID: element._id,
           quantity: element.cartQuantity,
         });
       }
     });
 
+    const cartProductIds = newCartProducts.map((element) => element.productID);
+
+    // If cart is empty, return empty cart
+    if (cartProductIds.length === 0) {
+      return res.status(200).json({ cart });
+    }
+
+    // Get details of each product
+    const products = await Product.find({
+      _id: { $in: cartProductIds },
+    });
+
+    const syncedCart = {
+      userID: user._id,
+      products: [],
+    };
+
+    // Add product details to cart
+    newCartProducts.forEach((element, index) => {
+      const productDetails = products.find(
+        (product) => product._id == element.productID
+      );
+
+      const productDetails_doc = productDetails._doc;
+
+      syncedCart.products.push({
+        cartQuantity: element.quantity,
+        ...productDetails_doc,
+      });
+    });
+
     // Update my cart
     const updatedCart = await Cart.findOneAndUpdate(
       { userID: user._id },
-      { products: newCartProdcuts },
+      { products: newCartProducts },
       { new: true }
     );
 
-    res.status(200).json({ updatedCart });
+    res.status(200).json({ syncedCart });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: error.message });
