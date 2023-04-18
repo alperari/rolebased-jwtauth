@@ -28,25 +28,64 @@ router.get('/my', requireAuth, async (req, res) => {
     // Get details of each product
     const products = await Product.find({
       _id: { $in: cartProductIds },
-    }).select({
-      name: 1,
-      price: 1,
-      discount: 1,
-      imageURL: 1,
-      description: 1,
-      category: 1,
     });
 
     // Add product details to cart
-    cart.products.forEach((element) => {
-      const product = products.find(
+    cart.products.forEach((element, index) => {
+      const productDetails = products.find(
         (product) => product._id == element.productID
       );
 
-      element.productDetails = product;
+      element.cartQuantity = element.quantity;
+
+      delete element.quantity;
+      delete element.productID;
+
+      const productDetails_doc = productDetails._doc;
+
+      cart.products[index] = { ...element, ...productDetails_doc };
     });
+    console.log(cart);
 
     res.status(200).json({ cart });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.post('/sync', requireAuth, async (req, res) => {
+  const { user } = req;
+  const { localStorageCart } = req.body;
+
+  if (!localStorageCart) {
+    console.error('Invalid local storage cart');
+    return res.status(400).json({ error: 'Invalid local storage cart' });
+  }
+
+  try {
+    // Get cart
+    const cart = await Cart.findOne({ userID: user._id });
+
+    const newCartProdcuts = [];
+
+    localStorageCart.products.forEach((element) => {
+      if (!cart.products.find((item) => item.productID === element._id)) {
+        newCartProdcuts.push({
+          productID: element._id,
+          quantity: element.cartQuantity,
+        });
+      }
+    });
+
+    // Update my cart
+    const updatedCart = await Cart.findOneAndUpdate(
+      { userID: user._id },
+      { products: newCartProdcuts },
+      { new: true }
+    );
+
+    res.status(200).json({ updatedCart });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: error.message });
