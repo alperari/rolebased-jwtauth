@@ -16,7 +16,7 @@ router.get('/my', requireAuth, async (req, res) => {
 
   try {
     // Get cart
-    const cart = await Cart.findOne({ userID: user._id });
+    let cart = await Cart.findOne({ userID: user._id });
 
     const cartProductIds = cart.products.map((element) => element.productID);
 
@@ -43,8 +43,12 @@ router.get('/my', requireAuth, async (req, res) => {
 
       const productDetails_doc = productDetails._doc;
 
+      delete productDetails_doc.__v;
+
       cart.products[index] = { ...element, ...productDetails_doc };
     });
+
+    cart = { products: cart.products };
 
     res.status(200).json({ cart });
   } catch (error) {
@@ -94,7 +98,6 @@ router.post('/sync', requireAuth, async (req, res) => {
     });
 
     const syncedCart = {
-      userID: user._id,
       products: [],
     };
 
@@ -105,6 +108,8 @@ router.post('/sync', requireAuth, async (req, res) => {
       );
 
       const productDetails_doc = productDetails._doc;
+
+      delete productDetails_doc.__v;
 
       syncedCart.products.push({
         cartQuantity: element.quantity,

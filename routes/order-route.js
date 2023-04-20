@@ -30,6 +30,7 @@ router.post('/', requireAuth, async (req, res) => {
 
   // Validate inputs are valid
   if (!products || !creditCard || !address) {
+    console.error('Invalid inputs');
     return res.status(400).json({ error: 'Invalid inputs' });
   }
 
@@ -39,6 +40,7 @@ router.post('/', requireAuth, async (req, res) => {
   });
 
   if (productsInDB.length !== products.length) {
+    console.error('Invalid product IDs');
     return res.status(400).json({ error: 'Invalid product IDs' });
   }
 
@@ -55,6 +57,7 @@ router.post('/', requireAuth, async (req, res) => {
   }, true);
 
   if (!isValid) {
+    console.error('Invalid product prices & quantities');
     return res
       .status(400)
       .json({ error: 'Invalid product prices & quantities' });
@@ -72,6 +75,7 @@ router.post('/', requireAuth, async (req, res) => {
   }, true);
 
   if (!isSufficient) {
+    console.error('Insufficient quantity in stock');
     return res.status(400).json({ error: 'Insufficient quantity in stock' });
   }
 
