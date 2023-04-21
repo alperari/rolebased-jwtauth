@@ -29,6 +29,32 @@ router.get('/id/:id', requireAuth, async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    // Get product details
+
+    const productsInDB = await Product.find({
+      _id: { $in: order.products.map((element) => element.productID) },
+    }).select({ imageURL: 1, name: 1, distributor: 1, category: 1 });
+
+    const productsWithDetails = [];
+
+    for (let product of order.products) {
+      const productDetails = productsInDB.find(
+        (element) => element._id == product.productID
+      );
+
+      const productDetails_doc = productDetails._doc;
+
+      product = {
+        cartQuantity: product.quantity,
+        buyPrice: product.buyPrice,
+        ...productDetails_doc,
+      };
+
+      productsWithDetails.push(product);
+    }
+
+    order._doc.products = productsWithDetails;
+
     res.status(200).json({ order });
   } catch (error) {
     console.log(error);
