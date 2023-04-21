@@ -127,6 +127,7 @@ const uploadImage = async (imageFile) => {
       resource_type: 'image',
       upload_preset: 'uzvxfwtx',
       folder: 'products',
+      format: 'jpg',
     });
 
     return result.secure_url;

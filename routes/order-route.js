@@ -8,6 +8,34 @@ const router = express.Router();
 
 // Endpoints--------------------------------------------------------------
 
+// Get order by id
+// Only authenticated users
+router.get('/id/:id', requireAuth, async (req, res) => {
+  const { user } = req;
+  const { id } = req.params;
+
+  try {
+    const order = await Order.findById(id);
+
+    // Check if order exists
+    if (!order) {
+      console.error('Order not found');
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Check if this order belongs to the user
+    if (order.userID != user._id) {
+      console.error('Unauthorized');
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    res.status(200).json({ order });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Get my orders
 // Only authenticated users
 router.get('/my', requireAuth, async (req, res) => {
