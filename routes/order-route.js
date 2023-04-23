@@ -68,10 +68,41 @@ router.get('/my', requireAuth, async (req, res) => {
   const { user } = req;
 
   try {
-    const orders = await Order.find({ userID: user._id });
+    const orders = await Order.find({ userID: user._id }).sort({
+      createdAt: -1,
+    });
+
+    // Get product details for each order
+
+    for (const order of orders) {
+      const productsInDB = await Product.find({
+        _id: { $in: order.products.map((element) => element.productID) },
+      }).select({ imageURL: 1, name: 1, distributor: 1, category: 1 });
+
+      const productsWithDetails = [];
+
+      for (let product of order.products) {
+        const productDetails = productsInDB.find(
+          (element) => element._id == product.productID
+        );
+
+        const productDetails_doc = productDetails._doc;
+
+        product = {
+          cartQuantity: product.quantity,
+          buyPrice: product.buyPrice,
+          ...productDetails_doc,
+        };
+
+        productsWithDetails.push(product);
+      }
+
+      order._doc.products = productsWithDetails;
+    }
+
     res.status(200).json({ orders });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -81,7 +112,7 @@ router.get('/my', requireAuth, async (req, res) => {
 router.post('/', requireAuth, async (req, res) => {
   const { user } = req;
   const { products, creditCard, address } = req.body;
-
+  console.log(req.body);
   // Validate inputs are valid
   if (!products || !creditCard || !address) {
     console.error('Invalid inputs');
@@ -139,6 +170,7 @@ router.post('/', requireAuth, async (req, res) => {
       userID: user._id,
       products,
       creditCard,
+      last4digits: creditCard.slice(-4),
       address,
       receiverEmail: user.email,
     });
