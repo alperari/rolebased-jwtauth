@@ -111,8 +111,8 @@ router.get('/my', requireAuth, async (req, res) => {
 // Only authenticated users
 router.post('/', requireAuth, async (req, res) => {
   const { user } = req;
-  const { products, creditCard, address } = req.body;
-  console.log(req.body);
+  const { products, creditCard, address, contact } = req.body;
+
   // Validate inputs are valid
   if (!products || !creditCard || !address) {
     console.error('Invalid inputs');
@@ -173,6 +173,7 @@ router.post('/', requireAuth, async (req, res) => {
       last4digits: creditCard.slice(-4),
       address,
       receiverEmail: user.email,
+      contact,
     });
 
     // Decrease quantity of products in stock
