@@ -199,6 +199,21 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
+// Get all orders
+// Only sales managers
+router.get('/all', requireAuth, requireSManager, async (req, res) => {
+  try {
+    const orders = await Order.find().sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Cancel my processing order
 // Only authenticated users
 router.patch('/cancel', requireAuth, async (req, res) => {
