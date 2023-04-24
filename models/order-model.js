@@ -45,6 +45,16 @@ const orderSchema = new Schema({
     type: String,
     default: '',
   },
+
+  last4digits: {
+    type: String,
+    required: true,
+  },
+
+  contact: {
+    type: String,
+    required: true,
+  },
 });
 
 // Hooks ----------------------------------------

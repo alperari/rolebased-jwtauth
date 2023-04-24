@@ -114,7 +114,7 @@ router.post('/', requireAuth, async (req, res) => {
   const { products, creditCard, address, contact } = req.body;
 
   // Validate inputs are valid
-  if (!products || !creditCard || !address) {
+  if (!products || !creditCard || !address || !contact) {
     console.error('Invalid inputs');
     return res.status(400).json({ error: 'Invalid inputs' });
   }
@@ -219,42 +219,45 @@ router.get('/all', requireAuth, requireSManager, async (req, res) => {
 router.patch('/cancel', requireAuth, async (req, res) => {
   const { user } = req;
   const { orderID } = req.body;
-
   try {
     // Get order
     const order = await Order.findById(orderID);
 
     if (!order) {
+      console.error('Order does not exist');
       return res.status(400).json({ error: 'Order does not exist' });
     }
 
     // Check if order belongs to user
+
     if (order.userID !== user._id) {
+      console.error('Order does not belong to user');
       return res.status(400).json({ error: 'Order does not belong to user' });
     }
 
     // Check if order status is 'processing'
     if (order.status !== 'processing') {
+      console.error('Order status is not processing');
       return res.status(400).json({ error: 'Order status is not processing' });
     }
 
     // Cancel order
-    const updatedCart = await Cart.findOneAndUpdate(
+    const updatedOrder = await Order.findOneAndUpdate(
       { _id: order._id, userID: user._id },
       { status: 'cancelled' },
       { new: true }
     );
 
     // Increase quantity of products in stock
-    order.products.forEach(async (product) => {
-      const updatedProduct = await Product.findOneAndUpdate(
-        { _id: product._id },
+    for (const product of order.products) {
+      await Product.findOneAndUpdate(
+        { _id: product.productID },
         { $inc: { quantity: product.quantity } },
         { new: true }
       );
-    });
+    }
 
-    res.status(200).json({ order });
+    res.status(200).json({ updatedOrder });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: error.message });
@@ -376,50 +379,5 @@ router.patch('/update', requireAuth, requireSManager, async (req, res) => {
 
 // Cancel my order
 // Only authenticated users
-router.patch('/cancel', async (req, res) => {
-  const { user } = req;
-  const { orderID } = req.body;
-
-  try {
-    // Get order
-    const order = await Order.findById(orderID);
-
-    if (!order) {
-      return res.status(400).json({ error: 'Order does not exist' });
-    }
-
-    // Check if order belongs to user
-
-    if (order.userID !== user._id) {
-      return res.status(400).json({ error: 'Order does not belong to user' });
-    }
-
-    // Check if order status is 'processing'
-    if (order.status !== 'processing') {
-      return res.status(400).json({ error: 'Order status is not processing' });
-    }
-
-    // Cancel order
-    const updatedOrder = await Order.findOneAndUpdate(
-      { _id: order._id, userID: user._id },
-      { status: 'cancelled' },
-      { new: true }
-    );
-
-    // Increase quantity of products in stock
-    order.products.forEach(async (product) => {
-      const updatedProduct = await Product.findOneAndUpdate(
-        { _id: product._id },
-        { $inc: { quantity: product.quantity } },
-        { new: true }
-      );
-    });
-
-    res.status(200).json({ order });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: error.message });
-  }
-});
 
 module.exports = router;
