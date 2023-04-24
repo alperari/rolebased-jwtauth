@@ -69,7 +69,7 @@ router.get('/my', requireAuth, async (req, res) => {
 
   try {
     const orders = await Order.find({ userID: user._id }).sort({
-      createdAt: -1,
+      date: -1,
     });
 
     // Get product details for each order
