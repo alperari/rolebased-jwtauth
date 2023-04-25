@@ -76,6 +76,7 @@ mongoose
     const ratingRouter = require('./routes/rating-route');
     const commentRouter = require('./routes/comment-route');
     const searchRouter = require('./routes/search-route');
+    const refundRouter = require('./routes/refund-route');
 
     app.use('/auth', authRouter);
     app.use('/user', userRouter);
@@ -86,6 +87,7 @@ mongoose
     app.use('/rating', ratingRouter);
     app.use('/comment', commentRouter);
     app.use('/search', searchRouter);
+    app.use('/refund', refundRouter);
 
     listEndpoints(app).forEach((endpoint) => {
       console.log(endpoint.methods[0], endpoint.path);

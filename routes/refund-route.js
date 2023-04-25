@@ -1,7 +1,8 @@
 const express = require('express');
 const Order = require('../models/order-model');
-const Refund = require('..models/refund-model');
 const Product = require('../models/product-model');
+const Refund = require('../models/refund-model');
+
 const { requireAuth, requireSManager } = require('../middlewares/auth');
 
 const { transporter } = require('../utils/nodemailer');
@@ -76,6 +77,52 @@ router.post('/', requireAuth, async (req, res) => {
     });
 
     res.status(200).json({ newRefund });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get refund status for each product in an order by orderID
+// Only authenticated users
+router.get('/order/:orderID', requireAuth, async (req, res) => {
+  const { user } = req;
+  const { orderID } = req.params;
+
+  try {
+    const order = await Order.findById(orderID);
+
+    // Check if order with orderID exists
+    if (!order) {
+      return res.status(400).json({ error: 'Order does not exist' });
+    }
+
+    // Check if order belongs to user
+    if (order.userID !== user._id) {
+      return res.status(400).json({ error: 'Order does not belong to user' });
+    }
+
+    const productIDs = order.products.map((element) => element.productID);
+
+    const refunds = [];
+
+    for (const productID of productIDs) {
+      // Get refund status for each product in this order
+      let refund = await Refund.findOne({ orderID, productID });
+
+      if (!refund) {
+        refund = {
+          productID: productID,
+          status: 'none',
+        };
+      }
+
+      refunds.push(refund);
+    }
+
+    res.status(200).json({ refunds });
+
+    // Get refund status for each product in this order
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: error.message });
@@ -336,3 +383,5 @@ const sendApprovalEmail = async (user, refund, product) => {
     }
   });
 };
+
+module.exports = router;
