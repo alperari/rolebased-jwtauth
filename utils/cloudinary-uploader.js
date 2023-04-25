@@ -49,9 +49,7 @@ const uploadPDF = async (order) => {
   doc.fontSize(12).text(`Date: ${order.date}`).moveDown(0.5);
   doc
     .fontSize(12)
-    .text(
-      `Credit Card: ${order.creditCard.substring(0, 4) + ' **** **** ****'}`
-    )
+    .text(`Credit Card: ${'**** **** **** ' + order.creditCard.slice(-4)}`)
     .moveDown(0.5);
   doc.fontSize(12).text(`Email: ${order.receiverEmail}`).moveDown(2);
 

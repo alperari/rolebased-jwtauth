@@ -77,7 +77,7 @@ orderSchema.pre('save', async function (next) {
       from: NODEMAILER_EMAIL,
       to: this.receiverEmail,
       subject: 'Your Receipt',
-      text: 'Please find the receipt PDF file attached.',
+      text: 'Please find the receipt PDF about your last purchase attached.',
       attachments: [
         {
           filename: 'receipt.pdf',
