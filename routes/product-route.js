@@ -7,6 +7,7 @@ const Rating = require('../models/rating-model');
 const Cart = require('../models/cart-model');
 const User = require('../models/user-model');
 const Wishlist = require('../models/wishlist-model');
+const Order = require('../models/order-model');
 
 const { transporter } = require('../utils/nodemailer');
 const { uploadImage } = require('../utils/cloudinary-uploader');
@@ -51,6 +52,35 @@ router.get('/id/:id', checkAuth, async (req, res) => {
     product._doc.inMyWishlist = inMyWishlist;
 
     res.status(200).json({ product });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+router.get('/is-commentable-ratable', requireAuth, async (req, res) => {
+  const { user } = req;
+  const { productID } = req.query;
+
+  try {
+    const product = await Product.findById(productID);
+
+    if (!product) {
+      console.error('Product not found');
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const order = await Order.findOne({
+      userID: user._id,
+      products: { $elemMatch: { productID: productID } },
+      status: 'delivered',
+    });
+
+    if (!order) {
+      return res.status(200).json(false);
+    }
+
+    return res.status(200).json(true);
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: error.message });
