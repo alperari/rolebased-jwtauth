@@ -23,8 +23,12 @@ router.get('/id/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Check if this order belongs to the user
-    if (order.userID != user._id) {
+    // Check if this order belongs to the user (admins and sales managers are exceptions)
+    if (
+      user.role !== 'admin' &&
+      user.role !== 'salesManager' &&
+      order.userID != user._id
+    ) {
       console.error('Unauthorized');
       return res.status(401).json({ error: 'Unauthorized' });
     }

@@ -1,5 +1,7 @@
 const express = require('express');
 const Order = require('../models/order-model');
+const User = require('../models/user-model');
+
 const Product = require('../models/product-model');
 const Refund = require('../models/refund-model');
 
@@ -137,6 +139,21 @@ router.get('/all', requireAuth, requireSManager, async (req, res) => {
   try {
     const refunds = await Refund.find();
 
+    // Get user details for each refund
+    for (const refund of refunds) {
+      const user = await User.findById(refund.userID).select('name email');
+      refund._doc.user = user;
+    }
+
+    // Get product details for each refund
+    for (const refund of refunds) {
+      const productDetails = await Product.findById(refund.productID).select(
+        'name imageURL distributor'
+      );
+
+      refund._doc.productDetails = productDetails;
+    }
+
     res.status(200).json({ refunds });
   } catch (error) {
     console.error(error);
@@ -197,6 +214,16 @@ router.get('/my', requireAuth, async (req, res) => {
   try {
     const refunds = await Refund.find({ userID: user._id });
 
+    // Fetch product details for products in each refund
+
+    for (const refund of refunds) {
+      const productDetails = await Product.findById(refund.productID).select(
+        'name imageURL distributor'
+      );
+
+      refund._doc.productDetails = productDetails;
+    }
+
     res.status(200).json({ refunds });
   } catch (error) {
     console.error(error);
@@ -207,7 +234,6 @@ router.get('/my', requireAuth, async (req, res) => {
 // Approve a refund
 // Only sales managers can update refund status approve
 router.patch('/approve', requireAuth, requireSManager, async (req, res) => {
-  const { user } = req;
   const { refundID } = req.body;
 
   if (!refundID) {
@@ -308,15 +334,17 @@ router.patch('/reject', requireAuth, requireSManager, async (req, res) => {
 // Only authenticated users can delete their ("pending") refunds
 router.delete('/delete', requireAuth, async (req, res) => {
   const { user } = req;
-  const { refundID } = req.body;
+  const { orderID, productID } = req.body;
 
-  if (!refundID) {
-    console.error('Refund ID is required');
-    return res.status(400).json({ error: 'Refund ID is required' });
+  if (!orderID || !productID) {
+    console.error('Order ID and Product ID are required');
+    return res
+      .status(400)
+      .json({ error: 'Order ID and Product ID are required' });
   }
 
   try {
-    const refund = await Refund.findById(refundID);
+    const refund = await Refund.findOne({ orderID, productID });
 
     // Check if refund with refundID exists
     if (!refund) {
@@ -339,7 +367,7 @@ router.delete('/delete', requireAuth, async (req, res) => {
     }
 
     // Delete refund
-    const deletedRefund = await Refund.findByIdAndDelete(refundID);
+    const deletedRefund = await Refund.findByIdAndDelete(refund._id);
 
     return res.status(200).json({ deletedRefund });
   } catch (error) {
@@ -370,7 +398,7 @@ const sendApprovalEmail = async (user, refund, product) => {
 
   const message = {
     from: NODEMAILER_EMAIL,
-    to: updatedUser.email,
+    to: user.email,
     subject: 'Refund Approved!',
     html: messageHTML,
   };
