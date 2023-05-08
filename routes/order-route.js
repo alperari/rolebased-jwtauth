@@ -2,7 +2,11 @@ const express = require('express');
 const Order = require('../models/order-model');
 const Product = require('../models/product-model');
 const Cart = require('../models/cart-model');
-const { requireAuth, requireSManager } = require('../middlewares/auth');
+const {
+  requireAuth,
+  requireSManager,
+  requirePManager,
+} = require('../middlewares/auth');
 
 const router = express.Router();
 
@@ -205,7 +209,7 @@ router.post('/', requireAuth, async (req, res) => {
 
 // Get all orders
 // Only sales managers
-router.get('/all', requireAuth, requireSManager, async (req, res) => {
+router.get('/all', requireAuth, requirePManager, async (req, res) => {
   try {
     const orders = await Order.find().sort({
       date: -1,
@@ -270,7 +274,7 @@ router.patch('/cancel', requireAuth, async (req, res) => {
 
 // Update status of an order
 // Only sales maangers
-router.patch('/update', requireAuth, requireSManager, async (req, res) => {
+router.patch('/update', requireAuth, requirePManager, async (req, res) => {
   const { user } = req;
   const { orderID, newStatus } = req.body;
 
