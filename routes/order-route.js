@@ -315,7 +315,41 @@ router.patch('/update', requireAuth, requirePManager, async (req, res) => {
   }
 });
 
-// Cancel my order
-// Only authenticated users
+// TODO: requireAuth, requireSMananger
+router.get('/product-sales', async (req, res) => {
+  const { productID } = req.query;
+
+  if (!productID) {
+    console.error('Invalid inputs');
+    return res.status(400).json({ error: 'Invalid inputs' });
+  }
+
+  try {
+    // Get all orders (except cancelled) that contain the product
+    const orders = await Order.find({
+      'products.productID': productID,
+      status: { $ne: 'cancelled' },
+    });
+
+    const sales = [];
+
+    orders.forEach((order) => {
+      sales.push({
+        date: order.date.toISOString().split('T')[0],
+        quantity: order.products.find(
+          (product) => product.productID == productID
+        ).quantity,
+        buyPrice: order.products.find(
+          (product) => product.productID == productID
+        ).buyPrice,
+      });
+    });
+
+    res.status(200).json({ sales });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: error.message });
+  }
+});
 
 module.exports = router;
