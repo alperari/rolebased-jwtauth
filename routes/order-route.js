@@ -316,6 +316,7 @@ router.patch('/update', requireAuth, requirePManager, async (req, res) => {
 });
 
 // Get sales information of a product
+// Onlu sales managers
 router.get('/product-sales', requireAuth, requireSManager, async (req, res) => {
   const { productID } = req.query;
 
@@ -353,10 +354,11 @@ router.get('/product-sales', requireAuth, requireSManager, async (req, res) => {
 });
 
 // Get receipts from sales of a product
+// Onlu sales managers
 router.get(
-  '/receipts/id/:id',
-  // requireAuth,
-  // requireSManager,
+  '/receipts/product/:id',
+  requireAuth,
+  requireSManager,
   async (req, res) => {
     const { id } = req.params;
 
@@ -392,5 +394,29 @@ router.get(
     }
   }
 );
+
+// Get all receipts
+// Only sales managers
+router.get('/receipts/all', async (req, res) => {
+  try {
+    const orders = await Order.find({
+      status: { $ne: 'cancelled' },
+    });
+
+    const receipts = orders.map((order) => {
+      return {
+        orderID: order._id,
+        date: order.date,
+        userID: order.userID,
+        receiptURL: order.receiptURL,
+      };
+    });
+
+    res.status(200).json({ receipts });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: error.message });
+  }
+});
 
 module.exports = router;
