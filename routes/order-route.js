@@ -315,8 +315,8 @@ router.patch('/update', requireAuth, requirePManager, async (req, res) => {
   }
 });
 
-// TODO: requireAuth, requireSMananger
-router.get('/product-sales', async (req, res) => {
+// Get sales information of a product
+router.get('/product-sales', requireAuth, requireSManager, async (req, res) => {
   const { productID } = req.query;
 
   if (!productID) {
@@ -351,5 +351,46 @@ router.get('/product-sales', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// Get receipts from sales of a product
+router.get(
+  '/receipts/id/:id',
+  // requireAuth,
+  // requireSManager,
+  async (req, res) => {
+    const { id } = req.params;
+
+    if (!id) {
+      console.error('Invalid inputs');
+      return res.status(400).json({ error: 'Invalid inputs' });
+    }
+
+    try {
+      // Get all orders (except cancelled) that contain the product
+      const orders = await Order.find({
+        'products.productID': id,
+        status: { $ne: 'cancelled' },
+      });
+
+      const receipts = orders.map((order) => {
+        return {
+          orderID: order._id,
+          date: order.date,
+          quantity: order.products.find((product) => product.productID == id)
+            .quantity,
+          buyPrice: order.products.find((product) => product.productID == id)
+            .buyPrice,
+          userID: order.userID,
+          receiptURL: order.receiptURL,
+        };
+      });
+
+      res.status(200).json({ receipts });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
 
 module.exports = router;
