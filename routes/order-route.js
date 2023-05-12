@@ -409,6 +409,10 @@ router.get('/receipts/all', async (req, res) => {
         date: order.date,
         userID: order.userID,
         receiptURL: order.receiptURL,
+        total: order.products.reduce(
+          (acc, product) => acc + product.buyPrice,
+          0
+        ),
       };
     });
 

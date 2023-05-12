@@ -271,11 +271,9 @@ router.patch('/approve', requireAuth, requireSManager, async (req, res) => {
     );
 
     // Increase user's account balance
-    const totalRefundPrice = refund.quantity * refund.price;
-
     const updatedUser = await User.findByIdAndUpdate(
       { _id: refund.userID },
-      { $inc: { balance: totalRefundPrice } },
+      { $inc: { balance: refund.price } },
       { new: true }
     );
 
@@ -386,12 +384,10 @@ const sendApprovalEmail = async (user, refund, product) => {
           <p>Refunded Product Name: <b>${product.name} </b></p>
           <p>Refunded Product ID: <b>${product._id} </b></p>
           <p>Refunded Product Quantity: <b>${refund.quantity} </b></p>
-          <p>Product Price: <b>$${refund.price} </b></p>
+          <p>Product Price: <b>$${refund.price / refund.quantity} </b></p>
           <img src="${product.imageURL}" alt="${product.name}" width="100px" />
           <br>
-          <h4>$${
-            refund.price * refund.quantity
-          } has been refunded to your account balance.</h4>
+          <h4>$${refund.price} has been refunded to your account balance.</h4>
           <p>Thank you for shopping with us!</p>
         </div>
       `;

@@ -25,9 +25,8 @@ router.get('/id/:id', requireAuth, async (req, res) => {
   }
 
   try {
-    const user = User.findById(id);
-
-    return res.json({ user });
+    const user = await User.findById(id);
+    res.status(200).json({ user });
   } catch (error) {
     console.error(error);
     return res.status(400).json({ error: error.message });
