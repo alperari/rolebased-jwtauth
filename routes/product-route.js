@@ -20,6 +20,7 @@ const {
   requireAuth,
   requireSManager,
   requirePManager,
+  requireManager,
 } = require('../middlewares/auth');
 
 const router = Router();
@@ -101,7 +102,7 @@ router.get('/', async (req, res) => {
 
 // Get all products with their comments
 // Everyone
-router.get('/with-ratings', async (req, res) => {
+router.get('/with-ratings', requireAuth, requireManager, async (req, res) => {
   try {
     let products = await Product.find();
 
@@ -118,6 +119,30 @@ router.get('/with-ratings', async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 });
+
+// Get only listed products, with their comments
+// Sales Manager & Product Manager & admin
+router.get(
+  '/listed/with-ratings',
+
+  async (req, res) => {
+    try {
+      let products = await Product.find({ price: { $gt: -1 } });
+
+      // Get ratings for each product
+      for (let product of products) {
+        const ratings = await Rating.find({ productID: product._id });
+
+        product._doc.ratings = ratings;
+      }
+
+      res.status(200).json({ products });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error: error.message });
+    }
+  }
+);
 
 // Get products under a category
 // Everyone
@@ -310,7 +335,7 @@ const notifyUsers = async (product) => {
           <p>ID: <b>${product._id} </b></p>
           <p>Description: <b>${product.description} </b></p>
           <p>Discount: <b><b>${product.discount} </b>%</p>
-          <p>Previous before discount: <b>${product.price} </b></p>
+          <p>Price before discount: <b>${product.price} </b></p>
           <p>Price after discount: <b>${newPrice}</p>
           <img src="${product.imageURL}" alt="${product.name}" width="100px" />
         </div>

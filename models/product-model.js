@@ -12,10 +12,15 @@ const productSchema = new Schema({
   },
   price: {
     type: Number,
-    default: 0,
+    default: -1,
   },
   discount: {
     type: Number,
+    default: 0,
+  },
+  cost: {
+    type: Number,
+    required: true,
     default: 0,
   },
   category: {

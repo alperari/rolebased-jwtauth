@@ -68,6 +68,20 @@ requireSManager = (req, res, next) => {
   next();
 };
 
+// Middleware to check if user is authenticated and is one of [productManager, salesManager]
+requireManager = (req, res, next) => {
+  const { user } = req;
+
+  if (!user) {
+    return res.sendStatus(401); //Unauthorized
+  }
+  if (user.role === 'customer') {
+    return res.sendStatus(403); //Forbidden
+  }
+
+  next();
+};
+
 // Middleware to check if user is authenticated and is an admin
 requireAdmin = (req, res, next) => {
   const { user } = req;
@@ -89,4 +103,5 @@ module.exports = {
   requirePManager,
   requireSManager,
   requireAdmin,
+  requireManager,
 };
