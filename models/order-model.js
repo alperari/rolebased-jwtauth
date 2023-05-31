@@ -6,7 +6,7 @@ const axios = require('axios');
 const bcrypt = require('bcrypt');
 
 const { transporter } = require('../utils/nodemailer');
-const { uploadPDF } = require('../utils/cloudinary-uploader');
+const { uploadPDF_order } = require('../utils/cloudinary-uploader');
 
 const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
 
@@ -64,7 +64,7 @@ orderSchema.pre('save', async function (next) {
     // and upload it to cloudinary
     // then save the URL to the document
 
-    const { uploadResult, buffers } = await uploadPDF(this);
+    const { uploadResult, buffers } = await uploadPDF_order(this);
 
     if (uploadResult.error) {
       next(uploadResult.error);

@@ -6,7 +6,7 @@ const streamifier = require('streamifier');
 const Product = require('../models/product-model');
 
 // Upload PDF (here it is receipt) to cloudinary and return secure URL
-const uploadPDF = async (order) => {
+const uploadPDF_order = async (order) => {
   let uploadResult = false;
 
   const doc = new PDFDocument();
@@ -95,7 +95,122 @@ const uploadPDF = async (order) => {
     try {
       const result = await uploadFromBuffer(
         Buffer.concat(buffers),
-        'receipt_' + order.id,
+        'order_' + order.id,
+        'pdf',
+        'receipts',
+        'raw',
+        true
+      );
+
+      uploadResult = result;
+    } catch (error) {
+      console.log(error);
+      console.log('Failed to upload receipt PDF to cloudinary!');
+      uploadResult = { error };
+    }
+  });
+
+  while (!uploadResult) {
+    console.log('Uploading receipt PDF to cloudinary. This might take time...');
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  console.log('Receipt PDF is uploaded.');
+  return { uploadResult, buffers };
+};
+
+const uploadPDF_refund = async (refund, product) => {
+  let uploadResult = false;
+
+  const doc = new PDFDocument();
+  let buffers = [];
+
+  doc.on('data', buffers.push.bind(buffers));
+
+  // Create PDF content  ----------------------------------------
+  doc
+    .font('Times-Roman')
+    .fontSize(18)
+    .text('Receipt', { align: 'center' })
+    .moveDown(0.5);
+  doc
+    .fontSize(14)
+    .text(`This is electronically generated receipt for your refund: `, {
+      align: 'center',
+    });
+
+  doc
+    .font('Courier')
+    .fillColor('grey')
+    .fontSize(12)
+    .text(`${refund.id}`, { align: 'center' })
+    .moveDown(2);
+
+  doc
+    .lineCap('butt')
+    .moveTo(50, 140)
+    .lineTo(doc.page.width - 50, 140)
+    .stroke();
+
+  doc
+    .font('Times-Roman')
+    .fillColor('black')
+    .fontSize(14)
+    .text(`Refund Details`, { align: 'center' })
+    .moveDown(0.5);
+  doc.fontSize(12).text(`Date: ${refund.date}`).moveDown(0.5);
+
+  doc
+    .lineCap('butt')
+    .moveTo(50, 260)
+    .lineTo(doc.page.width - 50, 260)
+    .stroke();
+
+  doc.fontSize(14).text('Products', { align: 'center' }).moveDown(1);
+
+  doc.fontSize(12).text(`Order ID: ${refund.orderID}`).moveDown(0.5);
+  doc.fontSize(12).text(`Refunded Product Name: ${product.name}`).moveDown(0.5);
+  doc
+    .fontSize(12)
+    .text(`Refunded Product Price: ${refund.total / refund.quantity}`)
+    .moveDown(0.5);
+  doc
+    .fontSize(12)
+    .text(`Refunded Product Quantity: ${refund.quantity}`)
+    .moveDown(0.5);
+
+  const image = await axios.get(product.imageURL, {
+    responseType: 'arraybuffer',
+  });
+  doc
+    .image(image.data, { align: 'center', width: 100, valign: 'center' })
+    .moveDown(0.5);
+
+  doc
+    .fontSize(12)
+    .text(
+      '--------------------------------------------------------------------------------------',
+      {
+        align: 'center',
+      }
+    )
+    .moveDown(0.5);
+
+  doc
+    .fontSize(12)
+    .text(`${refund.total} has been refunded to your account balance.`)
+    .moveDown(0.5);
+
+  // Image
+
+  doc.end();
+  // Finish PDF content  ----------------------------------------
+
+  doc.on('end', async () => {
+    // When PDF is ready, upload it to cloudinary
+    try {
+      const result = await uploadFromBuffer(
+        Buffer.concat(buffers),
+        'refund_' + refund.id,
         'pdf',
         'receipts',
         'raw',
@@ -165,4 +280,4 @@ let uploadFromBuffer = (
   });
 };
 
-module.exports = { uploadPDF, uploadImage };
+module.exports = { uploadPDF_order, uploadPDF_refund, uploadImage };

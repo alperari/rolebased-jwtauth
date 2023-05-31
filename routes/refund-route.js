@@ -8,6 +8,7 @@ const Refund = require('../models/refund-model');
 const { requireAuth, requireSManager } = require('../middlewares/auth');
 
 const { transporter } = require('../utils/nodemailer');
+const { uploadPDF_refund } = require('../utils/cloudinary-uploader');
 
 const NODEMAILER_EMAIL = process.env.NODEMAILER_EMAIL;
 
@@ -280,7 +281,10 @@ router.patch('/approve', requireAuth, requireSManager, async (req, res) => {
     // Send approval to user's email
     await sendApprovalEmail(updatedUser, updatedRefund, updatedProduct);
 
-    res.status(200).json({ updatedRefund });
+    // Create PDF refund invoice as PDF
+    await uploadPDF_refund(updatedRefund, updatedProduct);
+
+    await res.status(200).json({ updatedRefund });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: error.message });
