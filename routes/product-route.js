@@ -229,11 +229,25 @@ router.patch(
     }
 
     try {
+      const product = await Product.findById(productID);
+
+      if (!product) {
+        console.error('Product not found');
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
       const filter = { _id: productID };
       const update = {};
 
       if (price !== null && price >= 0) {
         update.price = price;
+
+        // If price was set to -1, then the product was not listed
+        // This means that the product will be listed now
+        // So cost will be updated (half of the initial price)
+        if (product.price === -1) {
+          update.cost = price / 2;
+        }
       }
 
       if (discount !== null && discount >= 0) {
