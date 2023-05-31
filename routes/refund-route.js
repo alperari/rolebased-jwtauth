@@ -258,7 +258,7 @@ router.patch('/approve', requireAuth, requireSManager, async (req, res) => {
     }
 
     // Update refund status
-    const updatedRefund = await Refund.findByIdAndUpdate(
+    let updatedRefund = await Refund.findByIdAndUpdate(
       { _id: refundID },
       { status: 'approved' },
       { new: true }
@@ -282,9 +282,19 @@ router.patch('/approve', requireAuth, requireSManager, async (req, res) => {
     await sendApprovalEmail(updatedUser, updatedRefund, updatedProduct);
 
     // Create PDF refund invoice as PDF
-    await uploadPDF_refund(updatedRefund, updatedProduct);
+    const { uploadResult, buffers } = await uploadPDF_refund(
+      updatedRefund,
+      updatedProduct
+    );
 
-    await res.status(200).json({ updatedRefund });
+    // Update refund with PDF invoice URL
+    updatedRefund = await Refund.findByIdAndUpdate(
+      { _id: refundID },
+      { $set: { receiptURL: uploadResult.secure_url } },
+      { new: true }
+    );
+
+    res.status(200).json({ updatedRefund });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: error.message });

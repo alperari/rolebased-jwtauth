@@ -32,6 +32,9 @@ const refundSchema = new Schema({
     type: Date,
     default: Date.now,
   },
+  receiptURL: {
+    type: String,
+  },
 });
 
 const Refund = mongoose.model('Refund', refundSchema);

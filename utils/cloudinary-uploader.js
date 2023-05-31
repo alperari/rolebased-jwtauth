@@ -159,19 +159,11 @@ const uploadPDF_refund = async (refund, product) => {
     .moveDown(0.5);
   doc.fontSize(12).text(`Date: ${refund.date}`).moveDown(0.5);
 
-  doc
-    .lineCap('butt')
-    .moveTo(50, 260)
-    .lineTo(doc.page.width - 50, 260)
-    .stroke();
-
-  doc.fontSize(14).text('Products', { align: 'center' }).moveDown(1);
-
   doc.fontSize(12).text(`Order ID: ${refund.orderID}`).moveDown(0.5);
   doc.fontSize(12).text(`Refunded Product Name: ${product.name}`).moveDown(0.5);
   doc
     .fontSize(12)
-    .text(`Refunded Product Price: ${refund.total / refund.quantity}`)
+    .text(`Refunded Product Price: ${refund.price / refund.quantity}`)
     .moveDown(0.5);
   doc
     .fontSize(12)
@@ -197,7 +189,7 @@ const uploadPDF_refund = async (refund, product) => {
 
   doc
     .fontSize(12)
-    .text(`${refund.total} has been refunded to your account balance.`)
+    .text(`${refund.price} has been refunded to your account balance.`)
     .moveDown(0.5);
 
   // Image
