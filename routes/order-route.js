@@ -6,6 +6,7 @@ const {
   requireAuth,
   requireSManager,
   requirePManager,
+  requireManager,
 } = require('../middlewares/auth');
 
 const router = express.Router();
@@ -31,6 +32,7 @@ router.get('/id/:id', requireAuth, async (req, res) => {
     if (
       user.role !== 'admin' &&
       user.role !== 'salesManager' &&
+      user.role !== 'productManager' &&
       order.userID != user._id
     ) {
       console.error('Unauthorized');
@@ -208,8 +210,8 @@ router.post('/', requireAuth, async (req, res) => {
 });
 
 // Get all orders
-// Only sales managers
-router.get('/all', requireAuth, requirePManager, async (req, res) => {
+// Only managers
+router.get('/all', requireAuth, requireManager, async (req, res) => {
   try {
     const orders = await Order.find().sort({
       date: -1,
@@ -218,6 +220,22 @@ router.get('/all', requireAuth, requirePManager, async (req, res) => {
     res.status(200).json({ orders });
   } catch (error) {
     console.log(error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get active (non-cancelled) orders
+// Only sales managers
+router.get('/active', requireAuth, requireSManager, async (req, res) => {
+  try {
+    const orders = await Order.find({ status: { $ne: 'cancelled' } }).sort({
+      date: -1,
+    });
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.log(error);
+
     res.status(400).json({ error: error.message });
   }
 });
@@ -397,7 +415,7 @@ router.get(
 
 // Get all receipts
 // Only sales managers
-router.get('/receipts/all', async (req, res) => {
+router.get('/receipts/all', requireAuth, requireSManager, async (req, res) => {
   try {
     const orders = await Order.find({
       status: { $ne: 'cancelled' },

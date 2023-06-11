@@ -90,7 +90,7 @@ router.get('/is-commentable-ratable', requireAuth, async (req, res) => {
 
 // Get all products
 // Everyone
-router.get('/', async (req, res) => {
+router.get('/all', async (req, res) => {
   try {
     const products = await Product.find();
     res.status(200).json({ products });
